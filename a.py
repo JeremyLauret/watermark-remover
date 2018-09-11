@@ -9,6 +9,14 @@ import scipy.ndimage as ndimage
 
 plt.rcParams['image.cmap'] = 'gray' 
 
+def watermark(Img,W,alpha):
+    image = plt.imread(Img)
+    watermark = plt.imread(W)[:,:,0]
+    result = alpha * watermark + (1 - alpha) * image
+    plt.imshow(result)
+    plt.imsave('watermarked-'+Img,result)
+    return
+
 def compute_gradient(B,y1,y2,x1,x2,lam1):
     m_y1 = np.mean(y1)
     m_y1_2 = np.mean(y1**2)    
