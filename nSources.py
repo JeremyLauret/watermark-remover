@@ -5,24 +5,47 @@ Created on Tue Sep 11 09:41:12 2018
 @author: Luca
 """
 
-import numpy as np 
-# this is the key library for manipulating arrays. Use the online ressources! http://www.numpy.org/
+import numpy as np
 
-import matplotlib.pyplot as plt 
-# used to read images, display and plot http://matplotlib.org/api/pyplot_api.html
+import matplotlib.pyplot as plt
 
 import scipy.ndimage as ndimage
-# one of several python libraries for image procession
 
 plt.rcParams['image.cmap'] = 'gray' 
 
-LISTE_NOMS=['lena_W.png', 'barbara.png', 'barbara_W.png']
+""" Constants """
 
+IMG_DIR='img/'
+
+LISTE_NOMS=['watermarked_lena.png', 'barbara.png', 'watermarked_barbara.png']
+
+NB_ITER = 1000
+
+PAS_AFFICHAGE = NB_ITER//5 # Nombre d'itérations séparant deux affichages
+
+MU = 0.01
+
+LAMBDA = 1
+
+"""           """
+
+for i in range(len(LISTE_NOMS)):
+    LISTE_NOMS[i] = IMG_DIR + LISTE_NOMS[i]
+
+def show_img(img_list, nb_fig, title):
+    n = len(img_list)
+    plt.figure(nb_fig)
+    for i in range(n):
+        plt.subplot(n/3 if n/3 == n//3 else n//3, 3, i+1)
+        plt.title(title + str(i))
+        plt.imshow(img_list[i])
+    plt.show()
+    return(nb_fig + 1)
 
 def compute_gradient(B,y,x,lam1):
     m_y=np.zeros((len(y),6))
     for i in range(len(y)):
-        m_y[i][0]=np.mean(y[i])
+        m_y[i][0] = np.mean(y[i])
         m_y[i][1] = np.mean(y[i]**2)    
         m_y[i][2] = np.mean(y[i]**3)    
         m_y[i][3] = np.mean(y[i]**4)    
@@ -132,8 +155,8 @@ def genere_images(vecteur_noms):
     return [R_L, nb_lign, nb_col, images_source]
 
     
-def recons_images_test_nb(vect_images_vect, nb_lign, nb_col):
-    n=len(vect_images_vect)
+def list_to_matrix(list, nb_lign, nb_col):
+    n = len(list)
     images_matrice=[]
     #np.zeros((n, nb_lign, nb_col))
     for k in range(n):
@@ -147,78 +170,63 @@ def recons_images_test_nb(vect_images_vect, nb_lign, nb_col):
 
     return images_matrice
 
-
-# Programme principal
-def main():
-    #####
-    print("Generation puis concatenation des images en vecteur .....")
+def separate_mixed(mixed_img_array, nb_iter):
+    """
+     * Args :
+         - mixed_img_array -> tableau des observées au format liste 1D
+         - nb_iter -> nombre d'itérations de descente du gradient
+         
+     * Returns :
+         - y -> tableau des approximations au format liste 1D
+    """
+    n = len(mixed_img_array)
     
-    # s est un vecteur de vecteurs source
-    [vect_vect_source, nb_lign, nb_col, images_source] = genere_images(LISTE_NOMS)
-    n = len(images_source)
-    
-    for i in range(n):
-        vect_vect_source[i]=vect_vect_source[i]-np.mean(vect_vect_source[i])
-        vect_vect_source[i]=vect_vect_source[i]/np.std(vect_vect_source[i])
-
-    plt.figure(1)
-    for i in range(n):
-        plt.figure(i+1)
-        #numero=220+i
-        #plt.subplot(i+1)
-        plt.title("Source "+str(i))
-        plt.imshow(images_source[i])
-    
-    x=vect_vect_source
-
-    
-    print('l algo tourne.......')
-
-    nb_iter = 1001
-    # Initialisation de la matrice de separation
     B = np.eye(n)
-    
-    # pas dans la descente du gradient
-    mu=0.01
-    
-    # hyperparametre : parametre de penalisation : je cherche des sources ayant un ecart constant, ici = 1
-    Lambda = 1.
-    
-    # Je demarre avec mes sources melangees/observees
-    y=x
 
-    
-    # compteur d'affichage
-    indice = 1
-    
-    for I in range(nb_iter):
-        DJ = compute_gradient(B,y,x,Lambda)
-        # mise a jour de la matrice de separation
-        B = B - mu * DJ
-        
-        # mise a jour d'une estimation des sources separees (approximation dessources avant melange)
-        y=B @ x
+    ## Normalisation ##
+    for i in range(n):
+        mixed_img_array[i] = mixed_img_array[i] - np.mean(mixed_img_array[i])
+        mixed_img_array[i] = mixed_img_array[i] / np.std(mixed_img_array[i])
+    ##               ##
+
+    x = mixed_img_array
+
+    y = x
+
+    for k in range(nb_iter):
+        if (k % (nb_iter//10) == 0):
+            print("Progress : ", np.floor(k / nb_iter * 100), "%")
+
+        grad_J = compute_gradient(B, y, x, LAMBDA)
+
+        B = B - MU * grad_J
+
+        y = np.dot(B, x)
         
         for i in range(n):
-            y[i]=y[i]-np.mean(y[i])
-            
-        
-        
-        # Affichage toutes les 100 iterations
-        if(I == indice * 100):
-            indice = indice + 1
-            print('je reconstruis les images separees......')
-            yy=[]
-            for k in range(n):
-                yy.append((y[k]-min(y[k]))/(max(y[k])-min(y[k]))*255)
-            image_separees = recons_images_test_nb(yy,nb_lign,nb_col);
+            y[i] = y[i] - np.mean(y[i])
 
-            for k in range(n):
-                plt.figure(n+k+2)
-                plt.clf()
-                plt.imshow((np.array(image_separees[k])))
-                plt.title('Separation '+str(k))
-            
-            plt.show()
-            plt.pause(5)
-            
+    return y
+
+## Programme principal
+
+print("Génération des images mélangées puis concaténation en vecteurs...")
+
+[mixed_img_array, nb_lign, nb_col, images_source] = genere_images(LISTE_NOMS)
+
+print("Recomposition des sources à partir des observées...")
+
+y = separate_mixed(mixed_img_array, NB_ITER)
+
+print("Recomposition terminée !")
+
+# Affichage final
+
+clean_img_array = []
+
+for k in range(len(mixed_img_array)):
+    clean_img_array.append((y[k] - min(y[k])) / (max(y[k]) - min(y[k])) * 255)
+
+images_separees = recons_images_test_nb(clean_img_array, nb_lign, nb_col);
+
+show_img(images_separees, 1, "Recomposition ")
