@@ -9,9 +9,6 @@ import scipy.ndimage as ndimage
 
 plt.rcParams['image.cmap'] = 'gray' 
 
-
-
-
 def compute_gradient(B,y1,y2,x1,x2,lam1):
     m_y1 = np.mean(y1)
     m_y1_2 = np.mean(y1**2)    
@@ -387,5 +384,3 @@ def main2():
             plt.title('Separation 2')
 
             plt.show()
-            
-main2()
