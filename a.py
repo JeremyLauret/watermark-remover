@@ -10,12 +10,13 @@ import scipy.ndimage as ndimage
 plt.rcParams['image.cmap'] = 'gray' 
 
 def watermark(Img,W,alpha):
-    image = plt.imread(Img)
-    watermark = plt.imread(W)[:,:,0]
+    image = plt.imread(Img)[:,:,0]
+    watermark = plt.imread(W)#[:,:,0]
     result = alpha * watermark + (1 - alpha) * image
     plt.imshow(result)
-    plt.imsave('watermarked-'+Img,result)
+    plt.imsave('watermarked='+Img,result)
     return
+
 
 def compute_gradient(B,y1,y2,x1,x2,lam1):
     m_y1 = np.mean(y1)
@@ -79,7 +80,7 @@ def gene_images_test_nb():
 
     #***** lecture de l'image par exemple: xxx.jpg
     
-    image_source11 = (plt.imread('lena.png')) / 255
+    image_source11 = (plt.imread('W.png')) / 255
     
     image_source1 = image_source11[:, :, 2]
     # cas limite double(rgb2gray(plt.imread('ponts.png')))/255
@@ -175,8 +176,8 @@ def main():
     # melange
     A11 = 0.6
     A12 = 0.4
-    A21 = 0.4 # 1 - A11 ?
-    A22 = 0.6 # 1 - A12 ? 
+    A21 = 0.35 # 1 - A11 ?
+    A22 = 0.65 # 1 - A12 ? 
     x1 = A11*s1+A12*s2
     x2 = A21*s1+A22*s2
     
@@ -218,7 +219,7 @@ def main():
     
     print('l algo tourne.......')
 
-    nb_iter = 500 
+    nb_iter = 2000 
     # Initialisation de la matrice de separation
     B = np.eye(2)
     
@@ -254,7 +255,7 @@ def main():
             print('je reconstruis les images separees......')
             yy1=(y1-min(y1))/(max(y1)-min(y1))*255
             yy2=(y2-min(y2))/(max(y2)-min(y2))*255
-            [image_sep1,image_sep2] = recons_images_test_nb(yy1,yy2,nb_lign,nb_col)
+            [image_sep1,image_sep2] = recons_images_test_nb(yy1,yy2,nb_lign,nb_col);
 
             plt.figure(5)
             plt.clf()
@@ -287,20 +288,45 @@ def main2():
     
     image_source1 = image_source11[:, :, 2]
 
-    image_source1 = 1 - image_source1
+    #image_source1 = 1 - image_source1
     # cas limite double(rgb2gray(plt.imread('ponts.png')))/255
     
-    image_source2 = (plt.imread('watermarked-lena.png')) / 255
+
+
+
+    #image_source2 = (plt.imread('watermarked-barbara.png')) / 255
     
-    image_source2 = image_source2[:, :, 2]
+    image_source21 = (plt.imread('barbara.png')) / 255
 
-    #image_source3 =  (plt.imread('lena.png')) / 255
+    image_source22 = image_source11[:,:,2]
 
+    image_source2 = 0.7 * image_source21 + 0.3 * image_source22
+    
+
+    image_source1 = 0.5 * image_source1 + 0.5 * image_source2
+    
+    
+    
     #image_source1 = 0.3 * image_source3 + 0.7 * image_source1
     
     plt.figure(10)
     plt.imshow(image_source1)
     plt.show()
+    
+    plt.figure(9)
+    image_source31 =  (plt.imread('barbara.png')) / 255
+    image_source32 =  image_source11[:,:,2]
+    image_source3 = 0.35 * image_source31 + 0.65 * image_source32
+    plt.imshow(image_source3)
+    plt.show()
+    
+    
+    
+    
+    print(image_source3) 
+    print('  ')
+    print(image_source1)
+    
     
     # cas limite double(rgb2gray(plt.imread('chaussees.png')))/255
 
@@ -378,7 +404,7 @@ def main2():
             print('je reconstruis les images separees......')
             yy1=(y1-min(y1))/(max(y1)-min(y1))*255
             yy2=(y2-min(y2))/(max(y2)-min(y2))*255
-            [image_sep1,image_sep2] = recons_images_test_nb(yy1,yy2,nb_lign,nb_col)
+            [image_sep1,image_sep2] = recons_images_test_nb(yy1,yy2,nb_lign,nb_col);
 
             plt.pause(0.1)
             plt.figure(5)
@@ -392,3 +418,40 @@ def main2():
             plt.title('Separation 2')
 
             plt.show()
+            
+def test():
+    image_source11 = (plt.imread('W.png'))
+    
+    image_source1 = image_source11[:, :, 2]
+
+    #image_source1 = 1 - image_source1
+    # cas limite double(rgb2gray(plt.imread('ponts.png')))/255
+    
+
+
+
+    #image_source2 = (plt.imread('watermarked-barbara.png')) / 255
+    
+    image_source21 = (plt.imread('barbara.png'))
+
+    image_source22 = image_source11[:,:,2]
+
+    image_source2 = 0.7 * image_source21 + 0.3 * image_source22
+    
+
+    image_source1 = 0.5 * image_source1 + 0.5 * image_source2
+    
+    
+    plt.imsave('test.png',image_source1)
+    
+    I = plt.imread('test.png')
+
+    print(I) 
+    print('  ')
+    print(image_source1)
+    
+    
+    
+    return I == image_source1
+    
+            
