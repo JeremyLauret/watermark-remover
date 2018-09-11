@@ -10,8 +10,12 @@ import scipy.ndimage as ndimage
 plt.rcParams['image.cmap'] = 'gray' 
 
 def watermark(Img,W,alpha):
-    image = plt.imread(Img)[:,:,0]
-    watermark = plt.imread(W)#[:,:,0]
+    image = plt.imread(Img)
+    if image.shape[2] == 3:
+        image = image[:,:,2]
+    watermark = plt.imread(W)
+    if watermark.shape[2] == 3:
+        watermark = image[:,:,2]
     result = alpha * watermark + (1 - alpha) * image
     plt.imshow(result)
     plt.imsave('watermarked='+Img,result)
