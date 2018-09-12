@@ -36,8 +36,8 @@ def compute_gradient(B,y1,y2,x1,x2,lam1):
     m_y2_5 = np.mean(y2**5)     
     m_y2_6 = np.mean(y2**6)         
 
-    K1 = np.array([1, m_y1, m_y1_2, m_y1_3])
-    K2 = np.array([1, m_y2, m_y2_2, m_y2_3])
+    #K1 = np.array([1, m_y1, m_y1_2, m_y1_3])
+    #K2 = np.array([1, m_y2, m_y2_2, m_y2_3])
     
     # M1 = K1.T @ K1
     M1 = np.array([[1, m_y1, m_y1_2, m_y1_3], [m_y1, m_y1_2, m_y1_3, m_y1_4], [m_y1_2, m_y1_3, m_y1_4, m_y1_5], [m_y1_3, m_y1_4, m_y1_5, m_y1_6]])
@@ -56,7 +56,7 @@ def compute_gradient(B,y1,y2,x1,x2,lam1):
     Psi_y1 = w1[0]+w1[1]*y1+w1[2]*y1**2+w1[3]*y1**3
     Psi_y2 = w2[0]+w2[1]*y2+w2[2]*y2**2+w2[3]*y2**3
 
-    Psi_y = [Psi_y1, Psi_y2]
+    #Psi_y = [Psi_y1, Psi_y2]
     
     M_Psi11 = np.mean(Psi_y1*x1)
     M_Psi12 = np.mean(Psi_y1*x2)
@@ -142,8 +142,8 @@ def correl_coef_composante_nb(im1_R, im2_R):
     moy_2R = np.mean(im2_R)
 
     Mat_cor_R = np.zeros((2,2))
-    Mat_cor_G = np.zeros((2,2))
-    Mat_cor_B = np.zeros((2,2))
+    #Mat_cor_G = np.zeros((2,2))
+    #Mat_cor_B = np.zeros((2,2))
     
     ec_1R = np.std(im1_R)
     ec_2R = np.std(im2_R)
@@ -174,8 +174,8 @@ def main():
     s1 = s1 / np.std(s1)
     s2 = s2 / np.std(s2)
     
-    x1_R = s1
-    x2_R = s2
+    #x1_R = s1
+    #x2_R = s2
     
     # melange
     A11 = 0.6
@@ -259,7 +259,7 @@ def main():
             print('je reconstruis les images separees......')
             yy1=(y1-min(y1))/(max(y1)-min(y1))*255
             yy2=(y2-min(y2))/(max(y2)-min(y2))*255
-            [image_sep1,image_sep2] = recons_images_test_nb(yy1,yy2,nb_lign,nb_col);
+            [image_sep1,image_sep2] = recons_images_test_nb(yy1,yy2,nb_lign,nb_col)
 
             plt.figure(5)
             plt.clf()
@@ -408,7 +408,7 @@ def main2():
             print('je reconstruis les images separees......')
             yy1=(y1-min(y1))/(max(y1)-min(y1))*255
             yy2=(y2-min(y2))/(max(y2)-min(y2))*255
-            [image_sep1,image_sep2] = recons_images_test_nb(yy1,yy2,nb_lign,nb_col);
+            [image_sep1,image_sep2] = recons_images_test_nb(yy1,yy2,nb_lign,nb_col)
 
             plt.pause(0.1)
             plt.figure(5)

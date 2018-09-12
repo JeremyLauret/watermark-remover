@@ -116,6 +116,15 @@ def compute_gradient(B,y,x,lam1):
     return(M_Psi @ B.T - np.eye(len(y)) + lam1 * pen @ B.T)
 
 
+def load_img_from_name(names_list):
+    n = len(names_list)
+    matrix_list = []
+
+    for i in range(n):
+        matrix_list.append(plt.imread(names_list[i]))
+
+    return(matrix_list)
+
 def genere_images(vecteur_noms):
 
     #***** lecture de l'image par exemple: xxx.jpg
@@ -170,6 +179,24 @@ def list_to_matrix(img_list, nb_row, nb_col):
         img_matrix.append(img)
 
     return img_matrix
+
+"""
+def normalize(unnormalized_array):
+    normalized_array = []
+
+    for k in range(len(unnormalized_array)):
+        normalized_array.append((unnormalized_array[k] - min(unnormalized_array[k])) / (max(unnormalized_array[k]) - min(unnormalized_array[k])) * 255)
+
+    return(unnormalized_array)
+"""
+
+def unnormalize(normalized_array):
+    unnormalized_array = []
+
+    for k in range(len(normalized_array)):
+        unnormalized_array.append((normalized_array[k] - min(normalized_array[k])) / (max(normalized_array[k]) - min(normalized_array[k])) * 255)
+
+    return(unnormalized_array)
 
 def separate_mixed(mixed_img_array, nb_iter):
     """
@@ -228,6 +255,6 @@ clean_img_array = []
 for k in range(len(mixed_img_array)):
     clean_img_array.append((y[k] - min(y[k])) / (max(y[k]) - min(y[k])) * 255)
 
-recomposed_img = list_to_matrix(clean_img_array, nb_lign, nb_col);
+recomposed_img = list_to_matrix(clean_img_array, nb_lign, nb_col)
 
 show_img(recomposed_img, 1, "Recomposition ")
