@@ -232,6 +232,7 @@ def matrix_to_vect_array(img_matrix_array):
 
         for i in range(n) :
             img_vect_array[i] += matrix_to_vect(img_matrix_array[i][:,:,j])
+    return img_matrix_array
 
 
 
@@ -308,7 +309,7 @@ def separate_mixed_color(mixed_img_array_color, nb_iter):
 
     return y
     
-def quadrillage(liste_images, cote):
+def mosaique(liste_images, cote):
     (hauteur, largeur) = liste_images[0].shape 
     for I in range(hauteur // cote):
         for J in range(largeur // cote):
@@ -328,9 +329,11 @@ print("Conversion des images en vecteurs...")
 
 [mixed_img_array, nb_lign, nb_col, images_source] = genere_images(LISTE_NOMS)
 
+mixed_img_array = matrix_to_vect_array(mixed_img_array)
+
 print("Recomposition des sources à partir des observées...")
 
-y = quadrillage(mixed_img_array, 32)
+y = mosaique(mixed_img_array, 32)
 
 print("Recomposition terminée !")
 
