@@ -149,10 +149,8 @@ def genere_images(vecteur_noms):
  
     ##****** dimensions de l'image (nb_lign,nb_col,3)
 
-    [nb_lign, nb_col] = images_source[0].shape
+    [nb_lign, nb_col] = images_source[0].shape    
       
-      
-
     R=[]
     for i in range(n):
         R.append(images_source[i])
@@ -173,7 +171,7 @@ def genere_images(vecteur_noms):
      
     return [R_L, nb_lign, nb_col, images_source]
 
-def matrix_to_list(img_matrix):
+def matrix_to_vect(img_matrix):
     """
      * Args :
          - img_matrix -> tableau de dimensions nb_row x nb_col représentant une image
@@ -209,6 +207,35 @@ def vect_to_matrix(img_vect, nb_row, nb_col):
 
     return img_matrix
 
+def matrix_to_vect_array(img_matrix_array):
+    """
+     * Args :
+         - img_matrix_array -> tableau des images (matrices nb_row x nb_col [x 3])
+         
+     * Returns :
+         - img_vect_array -> tableau des images (vecteurs [x 3])
+         - nb_row, nb_col
+    """
+    n = len(img_matrix_array)
+
+    nb_row, nb_col = img_matrix_array[0].shape[0:2]
+
+    if (len(img_matrix_array[0].shape) > 2) : # Images colorées
+        img_vect_array = [np.zeros(nb_row * nb_col, img_matrix_array[k].shape[2]) for k in range(n)]
+
+        for i in range(n) :
+            for j in range(img_matrix_array[0].shape[2]) :
+                img_vect_array[i][:,j] = matrix_to_vect(img_matrix_array[i][:,:,j])
+
+    else :
+        img_vect_array = [np.zeros(nb_row * nb_col) for k in range(n)]
+
+        for i in range(n) :
+            img_vect_array[i] += matrix_to_vect(img_matrix_array[i][:,:,j])
+
+
+
+
 def unnormalize(normalized_array):
     unnormalized_array = []
 
@@ -220,11 +247,11 @@ def unnormalize(normalized_array):
 def separate_mixed(mixed_img_array, nb_iter):
     """
      * Args :
-         - mixed_img_array -> tableau des observées au format liste 1D
+         - mixed_img_array -> tableau des observées (vecteurs)
          - nb_iter -> nombre d'itérations de descente du gradient
          
      * Returns :
-         - y -> tableau des approximations au format liste 1D
+         - y -> tableau des approximations (vecteurs)
     """
     n = len(mixed_img_array)
     
@@ -258,31 +285,34 @@ def separate_mixed(mixed_img_array, nb_iter):
 def separate_mixed_color(mixed_img_array_color, nb_iter):
     """
      * Args :
-         - mixed_img_array_color -> tableau des observées en couleur au format liste 1D
+         - mixed_img_array_color -> tableau des observées en couleur (tableaux de trois vecteurs)
          - nb_iter -> nombre d'itérations de descente du gradient
          
      * Returns :
-         - y -> tableau des approximations en couleur au format liste 1D
+         - y -> tableau des approximations en couleur (tableaux de trois vecteurs)
     """
-    nImg = len(mixed_img_array_color)
+    n = len(mixed_img_array_color)
 
-    y = [np.zeros(mixed_img_array_color[i].shape) for i in range(nImg)]
+    y = [np.zeros(mixed_img_array_color[i].shape) for i in range(n)]
 
-    for couleur in range(3):
+    for couleur in range(mixed_img_array_color[0].shape[2]):
         colorList = []
 
-        for i in range(nImg):
+        for i in range(n):
             colorList.append(mixed_img_array_color[i][:, :, couleur])
 
         colorList = separate_mixed(colorList, nb_iter)
         
-        for j in range(nImg):
+        for j in range(n):
             y[j][:, :, couleur] += colorList[j]
+
     return y
 
 ## Programme principal
 
-print("Génération des images mélangées puis concaténation en vecteurs...")
+print("Chargement des images...")
+
+print("Conversion des images en vecteurs...")
 
 [mixed_img_array, nb_lign, nb_col, images_source] = genere_images(LISTE_NOMS)
 
