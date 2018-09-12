@@ -307,6 +307,18 @@ def separate_mixed_color(mixed_img_array_color, nb_iter):
             y[j][:, :, couleur] += colorList[j]
 
     return y
+    
+def quadrillage(liste_images, cote):
+    (hauteur, largeur) = liste_images[0].shape 
+    for I in range(hauteur // cote):
+        for J in range(largeur // cote):
+            carreaux = []
+            for k in range(len(liste_images)):
+                carreaux.append(liste_images[k][I*cote:(I+1)*cote, J*cote:(J+1)*cote])
+            carreaux = separate_mixed(carreaux, NB_ITER)
+            for k in range(len(liste_images)):
+                liste_images[k][I*cote:(I+1)*cote, J*cote:(J+1)*cote] = carreaux[k]
+    return liste_images
 
 ## Programme principal
 
@@ -318,7 +330,7 @@ print("Conversion des images en vecteurs...")
 
 print("Recomposition des sources à partir des observées...")
 
-y = separate_mixed(mixed_img_array, NB_ITER)
+y = quadrillage(mixed_img_array, 32)
 
 print("Recomposition terminée !")
 
