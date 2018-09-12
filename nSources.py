@@ -19,7 +19,7 @@ IMG_DIR='img/'
 
 LISTE_NOMS=['watermarked-lena.png', 'watermarked-barbara.png', 'barbara.png']
 
-NB_ITER = 1000
+NB_ITER = 10
 
 PAS_AFFICHAGE = NB_ITER//5 # Nombre d'itérations séparant deux affichages
 
@@ -125,6 +125,16 @@ def load_img_from_name(names_list):
 
     return(matrix_list)
 
+def color_to_gray(colored_matrix):
+    gray_matrix = np.zeros((colored_matrix.shape[0:2]))
+
+    if (len(colored_matrix.shape) > 2):
+        gray_matrix += (colored_matrix[:,:,0] + colored_matrix[:,:,1] + colored_matrix[:,:,2]) / 3
+    else:
+        gray_matrix += colored_matrix
+
+    return gray_matrix
+
 def genere_images(vecteur_noms):
 
     #***** lecture de l'image par exemple: xxx.jpg
@@ -163,32 +173,41 @@ def genere_images(vecteur_noms):
      
     return [R_L, nb_lign, nb_col, images_source]
 
-    
-def list_to_matrix(img_list, nb_row, nb_col):
-    n = len(img_list)
+def matrix_to_list(img_matrix):
+    """
+     * Args :
+         - img_matrix -> tableau de dimensions nb_row x nb_col représentant une image
+         
+     * Returns :
+         - img_vect -> vecteur 1D des lignes de la matrice mises bout à bout
+         - nb_row, nb_col
+    """
+    nb_row, nb_col = img_matrix.shape[0:2]
 
-    img_matrix = []
+    img_vect = np.zeros((nb_row*nb_col))
 
-    for k in range(n):
-        img = np.zeros((nb_row, nb_col))
+    for i in range(nb_row):
+        for j in range(nb_col):
+            img_vect[nb_col * i + j] = img_matrix[i, j]
 
-        for j in range(nb_row):
-            for i in range(nb_col):
-                img[i,j] = img_list[k][j+i*nb_col]
+    return img_vect, nb_row, nb_col
 
-        img_matrix.append(img)
+def vect_to_matrix(img_vect, nb_row, nb_col):
+    """
+     * Args :
+         - img_vect -> vecteur 1D des lignes d'une images mises bout à bout
+         - nb_row, nb_col -> dimensions de la matrice retournée
+         
+     * Returns :
+         - img_matrix -> tableau de dimensions nb_row x nb_col représentant l'image
+    """
+    img_matrix = np.zeros((nb_row, nb_col))
+
+    for i in range(nb_row):
+        for j in range(nb_col):
+            img_matrix[i,j] = img_vect[i * nb_col + j]
 
     return img_matrix
-
-"""
-def normalize(unnormalized_array):
-    normalized_array = []
-
-    for k in range(len(unnormalized_array)):
-        normalized_array.append((unnormalized_array[k] - min(unnormalized_array[k])) / (max(unnormalized_array[k]) - min(unnormalized_array[k])) * 255)
-
-    return(unnormalized_array)
-"""
 
 def unnormalize(normalized_array):
     unnormalized_array = []
@@ -236,6 +255,31 @@ def separate_mixed(mixed_img_array, nb_iter):
 
     return y
 
+def separate_mixed_color(mixed_img_array_color, nb_iter):
+    """
+     * Args :
+         - mixed_img_array_color -> tableau des observées en couleur au format liste 1D
+         - nb_iter -> nombre d'itérations de descente du gradient
+         
+     * Returns :
+         - y -> tableau des approximations en couleur au format liste 1D
+    """
+    nImg = len(mixed_img_array_color)
+
+    y = [np.zeros(mixed_img_array_color[i].shape) for i in range(nImg)]
+
+    for couleur in range(3):
+        colorList = []
+
+        for i in range(nImg):
+            colorList.append(mixed_img_array_color[i][:, :, couleur])
+
+        colorList = separate_mixed(colorList, nb_iter)
+        
+        for j in range(nImg):
+            y[j][:, :, couleur] += colorList[j]
+    return y
+
 ## Programme principal
 
 print("Génération des images mélangées puis concaténation en vecteurs...")
@@ -258,3 +302,15 @@ for k in range(len(mixed_img_array)):
 recomposed_img = list_to_matrix(clean_img_array, nb_lign, nb_col)
 
 show_img(recomposed_img, 1, "Recomposition ")
+
+"""
+lena = plt.imread('img/lena.png')
+
+print("Shape : ", lena.shape)
+
+lena_gray = color_to_gray(lena)
+
+plt.imshow(lena_gray)
+
+plt.show()
+"""
