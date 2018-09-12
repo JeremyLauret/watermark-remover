@@ -225,7 +225,7 @@ def matrix_to_vect_array(img_matrix_array):
 
         for i in range(n) :
             for j in range(img_matrix_array[0].shape[2]) :
-                img_vect_array[i][:,j] = matrix_to_vect(img_matrix_array[i][:,:,j])
+                img_vect_array[i][:,j] += matrix_to_vect(img_matrix_array[i][:,:,j])
 
     else :
         img_vect_array = [np.zeros(nb_row * nb_col) for k in range(n)]
@@ -233,8 +233,7 @@ def matrix_to_vect_array(img_matrix_array):
         for i in range(n) :
             img_vect_array[i] += matrix_to_vect(img_matrix_array[i][:,:,j])
 
-
-
+    return img_vect_array, nb_row, nb_col
 
 def unnormalize(normalized_array):
     unnormalized_array = []
