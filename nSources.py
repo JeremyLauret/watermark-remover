@@ -17,7 +17,7 @@ plt.rcParams['image.cmap'] = 'gray'
 
 IMG_DIR='img/'
 
-LISTE_NOMS=['watermarked_lena.png', 'barbara.png', 'watermarked_barbara.png']
+LISTE_NOMS=['watermarked-lena.png', 'watermarked-barbara.png', 'barbara.png']
 
 NB_ITER = 1000
 
@@ -155,20 +155,21 @@ def genere_images(vecteur_noms):
     return [R_L, nb_lign, nb_col, images_source]
 
     
-def list_to_matrix(list, nb_lign, nb_col):
-    n = len(list)
-    images_matrice=[]
-    #np.zeros((n, nb_lign, nb_col))
+def list_to_matrix(img_list, nb_row, nb_col):
+    n = len(img_list)
+
+    img_matrix = []
+
     for k in range(n):
-        reconstruction_image_matrice=np.zeros((nb_lign, nb_col))
-        for j in range(nb_lign):
-            #images_matrice[k][j] = vect_images_vect[k][ nb_col*j : nb_col*(j+1)]
+        img = np.zeros((nb_row, nb_col))
+
+        for j in range(nb_row):
             for i in range(nb_col):
-                reconstruction_image_matrice[i,j]=vect_images_vect[k][j+i*nb_col]
-        images_matrice.append(reconstruction_image_matrice)
+                img[i,j] = img_list[k][j+i*nb_col]
 
+        img_matrix.append(img)
 
-    return images_matrice
+    return img_matrix
 
 def separate_mixed(mixed_img_array, nb_iter):
     """
@@ -227,6 +228,6 @@ clean_img_array = []
 for k in range(len(mixed_img_array)):
     clean_img_array.append((y[k] - min(y[k])) / (max(y[k]) - min(y[k])) * 255)
 
-images_separees = recons_images_test_nb(clean_img_array, nb_lign, nb_col);
+recomposed_img = list_to_matrix(clean_img_array, nb_lign, nb_col);
 
-show_img(images_separees, 1, "Recomposition ")
+show_img(recomposed_img, 1, "Recomposition ")
