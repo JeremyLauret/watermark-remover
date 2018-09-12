@@ -231,9 +231,35 @@ def matrix_to_vect_array(img_matrix_array):
         img_vect_array = [np.zeros(nb_row * nb_col) for k in range(n)]
 
         for i in range(n) :
-            img_vect_array[i] += matrix_to_vect(img_matrix_array[i][:,:,j])
+            img_vect_array[i] += matrix_to_vect(img_matrix_array[i])
 
     return img_vect_array, nb_row, nb_col
+
+def vect_to_matrix_array(img_vect_array, nb_row, nb_col):
+    """
+     * Args :
+         - img_vect_array -> tableau des images (vecteurs [x 3])
+         - nb_row, nb_col -> dimensions des matrices retournées
+         
+     * Returns :
+         - img_matrix_array -> tableau des images (matrices nb_row x nb_col [x 3])         
+    """
+    n = len(img_vect_array)
+
+    if (len(img_vect_array[0].shape) > 1) : # Images colorées
+        img_matrix_array = [np.zeros(nb_row, nb_col, img_vect_array[k].shape[1]) for k in range(n)]
+
+        for i in range(n) :
+            for j in range(img_vect_array[0].shape[1]) :
+                img_matrix_array[i][:,:,j] += vect_to_matrix(img_vect_array[i][:,j])
+
+    else :
+        img_matrix_array = [np.zeros(nb_row, nb_col) for k in range(n)]
+
+        for i in range(n) :
+            img_matrix_array[i] += vect_to_matrix(img_vect_array[i])
+
+    return img_matrix_array
 
 def unnormalize(normalized_array):
     unnormalized_array = []
