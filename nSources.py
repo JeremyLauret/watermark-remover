@@ -225,13 +225,13 @@ def matrix_to_vect_array(img_matrix_array):
 
         for i in range(n) :
             for j in range(img_matrix_array[0].shape[2]) :
-                img_vect_array[i][:,j] += matrix_to_vect(img_matrix_array[i][:,:,j])
+                img_vect_array[i][:,j] += matrix_to_vect(img_matrix_array[i][:,:,j])[0]
 
     else :
         img_vect_array = [np.zeros(nb_row * nb_col) for k in range(n)]
 
         for i in range(n) :
-            img_vect_array[i] += matrix_to_vect(img_matrix_array[i])
+            img_vect_array[i] += matrix_to_vect(img_matrix_array[i])[0]
 
     return img_vect_array, nb_row, nb_col
 
@@ -251,13 +251,13 @@ def vect_to_matrix_array(img_vect_array, nb_row, nb_col):
 
         for i in range(n) :
             for j in range(img_vect_array[0].shape[1]) :
-                img_matrix_array[i][:,:,j] += vect_to_matrix(img_vect_array[i][:,j])
+                img_matrix_array[i][:,:,j] += vect_to_matrix(img_vect_array[i][:,j], nb_row, nb_col)
 
     else :
-        img_matrix_array = [np.zeros(nb_row, nb_col) for k in range(n)]
+        img_matrix_array = [np.zeros((nb_row, nb_col)) for k in range(n)]
 
         for i in range(n) :
-            img_matrix_array[i] += vect_to_matrix(img_vect_array[i])
+            img_matrix_array[i] += vect_to_matrix(img_vect_array[i], nb_row, nb_col)
 
     return img_matrix_array
 
@@ -269,7 +269,7 @@ def unnormalize(normalized_array):
 
     return(unnormalized_array)
 
-def separate_mixed(mixed_img_array, nb_iter):
+def separate_mixed_unicolor(mixed_img_array, nb_iter):
     """
      * Args :
          - mixed_img_array -> tableau des observées (vecteurs)
@@ -310,11 +310,11 @@ def separate_mixed(mixed_img_array, nb_iter):
 def separate_mixed_color(mixed_img_array_color, nb_iter):
     """
      * Args :
-         - mixed_img_array_color -> tableau des observées en couleur (tableaux de trois vecteurs)
+         - mixed_img_array_color -> tableau des observées en couleur (vecteurs x 3)
          - nb_iter -> nombre d'itérations de descente du gradient
          
      * Returns :
-         - y -> tableau des approximations en couleur (tableaux de trois vecteurs)
+         - y -> tableau des approximations en couleur (vecteurs x 3)
     """
     n = len(mixed_img_array_color)
 
@@ -326,10 +326,27 @@ def separate_mixed_color(mixed_img_array_color, nb_iter):
         for i in range(n):
             colorList.append(mixed_img_array_color[i][:, :, couleur])
 
-        colorList = separate_mixed(colorList, nb_iter)
+        colorList = separate_mixed_unicolor(colorList, nb_iter)
         
         for j in range(n):
             y[j][:, :, couleur] += colorList[j]
+
+    return y
+
+def separate_mixed(mixed_img_array, nb_iter):
+    """
+     * Args :
+         - mixed_img_array -> tableau des observées (vecteurs [x 3])
+         - nb_iter -> nombre d'itérations de descente du gradient
+         
+     * Returns :
+         - y -> tableau des approximations (vecteurs [x 3])
+    """
+    if (len(mixed_img_array[0].shape) > 1) : # Images en couleur
+        y = separate_mixed_color(mixed_img_array, nb_iter)
+
+    else :
+        y = separate_mixed_unicolor(mixed_img_array, nb_iter)
 
     return y
 
@@ -337,13 +354,26 @@ def separate_mixed_color(mixed_img_array_color, nb_iter):
 
 print("Chargement des images...")
 
+mixed_img_matrix_array = load_img_from_name(LISTE_NOMS)
+
+gray_needed = False
+
+for k in range(len(mixed_img_matrix_array)) :
+    if (len(mixed_img_matrix_array[k].shape) > 2) :
+        gray_needed = True
+
+if (gray_needed) :
+    print("Conversion des images en gris")
+    for k in range(len(mixed_img_matrix_array)) :
+        mixed_img_matrix_array[k] = color_to_gray(mixed_img_matrix_array[k])
+
 print("Conversion des images en vecteurs...")
 
-[mixed_img_array, nb_lign, nb_col, images_source] = genere_images(LISTE_NOMS)
+mixed_img_vect_array, nb_row, nb_col = matrix_to_vect_array(mixed_img_matrix_array)
 
 print("Recomposition des sources à partir des observées...")
 
-y = separate_mixed(mixed_img_array, NB_ITER)
+y = separate_mixed(mixed_img_vect_array, NB_ITER)
 
 print("Recomposition terminée !")
 
@@ -351,10 +381,10 @@ print("Recomposition terminée !")
 
 clean_img_array = []
 
-for k in range(len(mixed_img_array)):
+for k in range(len(y)):
     clean_img_array.append((y[k] - min(y[k])) / (max(y[k]) - min(y[k])) * 255)
 
-recomposed_img = list_to_matrix(clean_img_array, nb_lign, nb_col)
+recomposed_img = vect_to_matrix_array(clean_img_array, nb_row, nb_col)
 
 show_img(recomposed_img, 1, "Recomposition ")
 
