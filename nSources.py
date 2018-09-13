@@ -19,7 +19,7 @@ IMG_DIR='img/'
 
 #LISTE_NOMS=['barbara.png', 'lena.png']#, 'image3.jpg']
 
-LISTE_NOMS=['image1.png', 'image2.png']#, 'image3.jpg']
+LISTE_NOMS=['image2.png', 'image3.png']#, 'image3.jpg']
 
 NB_ITER = 500
 
@@ -331,7 +331,7 @@ def separate_mixed_color(mixed_img_array_color, nb_iter):
         colorList = separate_mixed_unicolor(colorList, nb_iter)
         
         for j in range(n):
-            y[j][:, couleur] += colorList[j]
+            y[j][:, couleur] = colorList[j]
 
     return y
 
@@ -434,12 +434,13 @@ y = separate_mixed(mixed_img_vect_array, NB_ITER)
 print("Recomposition terminee !")
 
 #Affichage final
-"""
+
 clean_img_array = []
 
-for k in range(len(y)):
-   clean_img_array.append((y[k] - min(y[k])) / (max(y[k]) - min(y[k])) * 255)
 """
+for k in range(len(y)):
+   clean_img_array.append((y[k] - min(y[k])) / (max(y[k]) - min(y[k])) * 255)"""
+
 recomposed_img = vect_to_matrix_array(y, nb_row, nb_col)
 
 plt.figure(1)
