@@ -19,7 +19,7 @@ IMG_DIR='img/'
 
 LISTE_NOMS=['watermarked-lena.png', 'watermarked-barbara.png', 'barbara.png']
 
-NB_ITER = 10
+NB_ITER = 2000
 
 PAS_AFFICHAGE = NB_ITER//5 # Nombre d'itérations séparant deux affichages
 
@@ -225,17 +225,41 @@ def matrix_to_vect_array(img_matrix_array):
 
         for i in range(n) :
             for j in range(img_matrix_array[0].shape[2]) :
-                img_vect_array[i][:,j] = matrix_to_vect(img_matrix_array[i][:,:,j])
+                img_vect_array[i][:,j] += matrix_to_vect(img_matrix_array[i][:,:,j])[0]
 
     else :
         img_vect_array = [np.zeros(nb_row * nb_col) for k in range(n)]
 
         for i in range(n) :
-            img_vect_array[i] += matrix_to_vect(img_matrix_array[i][:,:,j])
+            img_vect_array[i] += matrix_to_vect(img_matrix_array[i])[0]
+
+    return img_vect_array, nb_row, nb_col
+
+def vect_to_matrix_array(img_vect_array, nb_row, nb_col):
+    """
+     * Args :
+         - img_vect_array -> tableau des images (vecteurs [x 3])
+         - nb_row, nb_col -> dimensions des matrices retournées
+         
+     * Returns :
+         - img_matrix_array -> tableau des images (matrices nb_row x nb_col [x 3])         
+    """
+    n = len(img_vect_array)
+
+    if (len(img_vect_array[0].shape) > 1) : # Images colorées
+        img_matrix_array = [np.zeros(nb_row, nb_col, img_vect_array[k].shape[1]) for k in range(n)]
+
+        for i in range(n) :
+            for j in range(img_vect_array[0].shape[1]) :
+                img_matrix_array[i][:,:,j] += vect_to_matrix(img_vect_array[i][:,j], nb_row, nb_col)
+
+    else :
+        img_matrix_array = [np.zeros((nb_row, nb_col)) for k in range(n)]
+
+        for i in range(n) :
+            img_matrix_array[i] += vect_to_matrix(img_vect_array[i], nb_row, nb_col)
+
     return img_matrix_array
-
-
-
 
 def unnormalize(normalized_array):
     unnormalized_array = []
@@ -245,7 +269,7 @@ def unnormalize(normalized_array):
 
     return(unnormalized_array)
 
-def separate_mixed(mixed_img_array, nb_iter):
+def separate_mixed_unicolor(mixed_img_array, nb_iter):
     """
      * Args :
          - mixed_img_array -> tableau des observées (vecteurs)
@@ -269,7 +293,7 @@ def separate_mixed(mixed_img_array, nb_iter):
     y = x
 
     for k in range(nb_iter):
-        if (k % (nb_iter//10) == 0):
+        if (k % (nb_iter//2) == 0):
             print("Progress : ", np.floor(k / nb_iter * 100), "%")
 
         grad_J = compute_gradient(B, y, x, LAMBDA)
@@ -286,11 +310,11 @@ def separate_mixed(mixed_img_array, nb_iter):
 def separate_mixed_color(mixed_img_array_color, nb_iter):
     """
      * Args :
-         - mixed_img_array_color -> tableau des observées en couleur (tableaux de trois vecteurs)
+         - mixed_img_array_color -> tableau des observées en couleur (vecteurs x 3)
          - nb_iter -> nombre d'itérations de descente du gradient
          
      * Returns :
-         - y -> tableau des approximations en couleur (tableaux de trois vecteurs)
+         - y -> tableau des approximations en couleur (vecteurs x 3)
     """
     n = len(mixed_img_array_color)
 
@@ -302,51 +326,105 @@ def separate_mixed_color(mixed_img_array_color, nb_iter):
         for i in range(n):
             colorList.append(mixed_img_array_color[i][:, :, couleur])
 
-        colorList = separate_mixed(colorList, nb_iter)
+        colorList = separate_mixed_unicolor(colorList, nb_iter)
         
         for j in range(n):
             y[j][:, :, couleur] += colorList[j]
 
     return y
+
+def separate_mixed(mixed_img_array, nb_iter):
+    """
+     * Args :
+         - mixed_img_array -> tableau des observées (vecteurs [x 3])
+         - nb_iter -> nombre d'itérations de descente du gradient
+         
+     * Returns :
+         - y -> tableau des approximations (vecteurs [x 3])
+    """
+    if (len(mixed_img_array[0].shape) > 1) : # Images en couleur
+        y = separate_mixed_color(mixed_img_array, nb_iter)
+
+    else :
+        y = separate_mixed_unicolor(mixed_img_array, nb_iter)
+
+    return y
     
 def mosaique(liste_images, cote):
-    (hauteur, largeur) = liste_images[0].shape 
+    (hauteur, largeur) = liste_images[0].shape[0:2]
     for I in range(hauteur // cote):
         for J in range(largeur // cote):
             carreaux = []
             for k in range(len(liste_images)):
                 carreaux.append(liste_images[k][I*cote:(I+1)*cote, J*cote:(J+1)*cote])
+            carreaux, nb_row, nb_col = matrix_to_vect_array(carreaux)
             carreaux = separate_mixed(carreaux, NB_ITER)
+            carreaux = vect_to_matrix_array(carreaux, nb_row, nb_col)
             for k in range(len(liste_images)):
                 liste_images[k][I*cote:(I+1)*cote, J*cote:(J+1)*cote] = carreaux[k]
+    return liste_images
+    
+def mosaique2(liste_images, cote):
+    (hauteur, largeur) = liste_images[0].shape[0:2]
+    liste_carreaux=[]
+    for i in range(cote):
+        for j in range(cote):
+            carreaux = []
+            for k in range(len(liste_images)):
+                sous_image=np.zeros((hauteur // cote, largeur // cote))
+                for I in range(hauteur // cote):
+                    for J in range(largeur // cote):
+                        sous_image[I,J]=liste_images[k][I*cote+i, J*cote+j]
+                carreaux.append(sous_image)
+            carreaux, nb_row, nb_col = matrix_to_vect_array(carreaux)
+            carreaux = separate_mixed(carreaux, NB_ITER)
+            carreaux = vect_to_matrix_array(carreaux, nb_row, nb_col)
+            liste_carreaux.append(carreaux)
+            for k in range(len(liste_images)):
+                for I in range(hauteur // cote):
+                    for J in range(largeur // cote):
+                        liste_images[k][I*cote+i, J*cote+j] = liste_carreaux[i*(cote)+j][k][I,J]
     return liste_images
 
 ## Programme principal
 
 print("Chargement des images...")
 
-print("Conversion des images en vecteurs...")
+mixed_img_matrix_array = load_img_from_name(LISTE_NOMS)
 
-[mixed_img_array, nb_lign, nb_col, images_source] = genere_images(LISTE_NOMS)
+gray_needed = False
 
-mixed_img_array = matrix_to_vect_array(mixed_img_array)
+for k in range(len(mixed_img_matrix_array)) :
+    if (len(mixed_img_matrix_array[k].shape) > 2) :
+        gray_needed = True
 
-print("Recomposition des sources à partir des observées...")
+if (gray_needed) :
+    print("Conversion des images en gris")
+    for k in range(len(mixed_img_matrix_array)) :
+        mixed_img_matrix_array[k] = color_to_gray(mixed_img_matrix_array[k])
 
-y = mosaique(mixed_img_array, 32)
+#print("Conversion des images en vecteurs...")
+#
+#mixed_img_vect_array, nb_row, nb_col = matrix_to_vect_array(mixed_img_matrix_array)
+#
+#print("Recomposition des sources à partir des observées...")
+#
+#y = separate_mixed(mixed_img_vect_array, NB_ITER)
 
-print("Recomposition terminée !")
+y = mosaique2(mixed_img_matrix_array, 4)
+
+print("Recomposition terminee !")
 
 # Affichage final
+#
+#clean_img_array = []
+#
+#for k in range(len(y)):
+#    clean_img_array.append((y[k] - min(y[k])) / (max(y[k]) - min(y[k])) * 255)
+#
+#recomposed_img = vect_to_matrix_array(clean_img_array, nb_row, nb_col)
 
-clean_img_array = []
-
-for k in range(len(mixed_img_array)):
-    clean_img_array.append((y[k] - min(y[k])) / (max(y[k]) - min(y[k])) * 255)
-
-recomposed_img = list_to_matrix(clean_img_array, nb_lign, nb_col)
-
-show_img(recomposed_img, 1, "Recomposition ")
+show_img(y, 1, "Recomposition ")
 
 """
 lena = plt.imread('img/lena.png')
