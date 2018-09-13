@@ -17,9 +17,9 @@ plt.rcParams['image.cmap'] = 'gray'
 
 IMG_DIR='img/'
 
-LISTE_NOMS=['watermarked-lena.png', 'watermarked-barbara.png', 'barbara.png']
+LISTE_NOMS=['image1.jpg', 'image2.jpg', 'image3.jpg']
 
-NB_ITER = 2000
+NB_ITER = 100
 
 PAS_AFFICHAGE = NB_ITER//5 # Nombre d'itérations séparant deux affichages
 
@@ -221,7 +221,7 @@ def matrix_to_vect_array(img_matrix_array):
     nb_row, nb_col = img_matrix_array[0].shape[0:2]
 
     if (len(img_matrix_array[0].shape) > 2) : # Images colorées
-        img_vect_array = [np.zeros(nb_row * nb_col, img_matrix_array[k].shape[2]) for k in range(n)]
+        img_vect_array = [np.zeros((nb_row * nb_col, img_matrix_array[k].shape[2])) for k in range(n)]
 
         for i in range(n) :
             for j in range(img_matrix_array[0].shape[2]) :
@@ -320,16 +320,18 @@ def separate_mixed_color(mixed_img_array_color, nb_iter):
 
     y = [np.zeros(mixed_img_array_color[i].shape) for i in range(n)]
 
-    for couleur in range(mixed_img_array_color[0].shape[2]):
+    print(mixed_img_array_color[0].shape)
+
+    for couleur in range(mixed_img_array_color[0].shape[1]):
         colorList = []
 
         for i in range(n):
-            colorList.append(mixed_img_array_color[i][:, :, couleur])
+            colorList.append(mixed_img_array_color[i][:, couleur])
 
         colorList = separate_mixed_unicolor(colorList, nb_iter)
         
         for j in range(n):
-            y[j][:, :, couleur] += colorList[j]
+            y[j][:, couleur] += colorList[j]
 
     return y
 
@@ -391,7 +393,7 @@ def mosaique2(liste_images, cote):
 print("Chargement des images...")
 
 mixed_img_matrix_array = load_img_from_name(LISTE_NOMS)
-
+"""
 gray_needed = False
 
 for k in range(len(mixed_img_matrix_array)) :
@@ -401,28 +403,28 @@ for k in range(len(mixed_img_matrix_array)) :
 if (gray_needed) :
     print("Conversion des images en gris")
     for k in range(len(mixed_img_matrix_array)) :
-        mixed_img_matrix_array[k] = color_to_gray(mixed_img_matrix_array[k])
+        mixed_img_matrix_array[k] = color_to_gray(mixed_img_matrix_array[k])"""
 
-#print("Conversion des images en vecteurs...")
-#
-#mixed_img_vect_array, nb_row, nb_col = matrix_to_vect_array(mixed_img_matrix_array)
-#
-#print("Recomposition des sources à partir des observées...")
-#
-#y = separate_mixed(mixed_img_vect_array, NB_ITER)
+print("Conversion des images en vecteurs...")
 
-y = mosaique2(mixed_img_matrix_array, 4)
+mixed_img_vect_array, nb_row, nb_col = matrix_to_vect_array(mixed_img_matrix_array)
+
+print("Recomposition des sources à partir des observées...")
+
+y = separate_mixed_color(mixed_img_vect_array, NB_ITER)
+
+#y = mosaique2(mixed_img_matrix_array, 4)
 
 print("Recomposition terminee !")
 
-# Affichage final
-#
-#clean_img_array = []
-#
-#for k in range(len(y)):
-#    clean_img_array.append((y[k] - min(y[k])) / (max(y[k]) - min(y[k])) * 255)
-#
-#recomposed_img = vect_to_matrix_array(clean_img_array, nb_row, nb_col)
+#Affichage final
+
+clean_img_array = []
+"""
+for k in range(len(y)):
+   clean_img_array.append((y[k] - min(y[k])) / (max(y[k]) - min(y[k])) * 255)
+"""
+recomposed_img = vect_to_matrix_array(clean_img_array, nb_row, nb_col)
 
 show_img(y, 1, "Recomposition ")
 
