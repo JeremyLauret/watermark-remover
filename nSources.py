@@ -17,11 +17,11 @@ plt.rcParams['image.cmap'] = 'gray'
 
 IMG_DIR='img/'
 
-LISTE_NOMS=['barbara.png', 'lena.png']#, 'image3.jpg']
+#LISTE_NOMS=['barbara.png', 'lena.png']#, 'image3.jpg']
 
-#LISTE_NOMS=['image1.jpg', 'image2.jpg']#, 'image3.jpg']
+LISTE_NOMS=['image1.png', 'image2.png']#, 'image3.jpg']
 
-NB_ITER = 100
+NB_ITER = 500
 
 PAS_AFFICHAGE = NB_ITER//5 # Nombre d'itérations séparant deux affichages
 
@@ -295,7 +295,7 @@ def separate_mixed_unicolor(mixed_img_array, nb_iter):
     y = x
 
     for k in range(nb_iter):
-        if (k % (nb_iter//2) == 0):
+        if (k % (nb_iter//5) == 0):
             print("Progress : ", np.floor(k / nb_iter * 100), "%")
 
         grad_J = compute_gradient(B, y, x, LAMBDA)
@@ -388,25 +388,38 @@ def mosaique2(liste_images, cote):
                         liste_images[k][I*cote+i, J*cote+j] = liste_carreaux[i*(cote)+j][k][I,J]
     return liste_images
 
+def mix(img1, img2, alpha):
+    return(alpha * img1 + (1 - alpha) * img2)
+
 ## Programme principal
 
 print("Chargement des images...")
 
-mixed_img_matrix_array = load_img_from_name(LISTE_NOMS)
+mixed = load_img_from_name(LISTE_NOMS)
 
-mixed_img_matrix_array[0] = 0.6*mixed_img_matrix_array[0] + 0.4*mixed_img_matrix_array[1]
-mixed_img_matrix_array[1] = mixed_img_matrix_array[1]*0.6 + 0.4*mixed_img_matrix_array[0]
-
+"""
 gray_needed = False
 
-for k in range(len(mixed_img_matrix_array)) :
-    if (len(mixed_img_matrix_array[k].shape) > 2) :
+for k in range(len(mixed)) :
+    if (len(mixed[k].shape) > 2) :
         gray_needed = True
 
 if (gray_needed) :
     print("Conversion des images en gris")
-    for k in range(len(mixed_img_matrix_array)) :
-        mixed_img_matrix_array[k] = color_to_gray(mixed_img_matrix_array[k])
+    for k in range(len(mixed)) :
+        mixed[k] = color_to_gray(mixed[k])"""
+
+mixed_img_matrix_array = np.array([mix(mixed[0], mixed[1], 0.6), mix(mixed[0], mixed[1], 0.4)])
+
+"""
+print("a")
+
+plt.figure(3)
+plt.imshow(mixed_img_matrix_array[0])
+plt.figure(4)
+plt.imshow(mixed_img_matrix_array[1])
+plt.show()"""
+
 
 print("Conversion des images en vecteurs...")
 
