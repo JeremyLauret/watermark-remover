@@ -387,15 +387,3 @@ for k in range(len(y)):
 recomposed_img = vect_to_matrix_array(clean_img_array, nb_row, nb_col)
 
 show_img(recomposed_img, 1, "Recomposition ")
-
-"""
-lena = plt.imread('img/lena.png')
-
-print("Shape : ", lena.shape)
-
-lena_gray = color_to_gray(lena)
-
-plt.imshow(lena_gray)
-
-plt.show()
-"""

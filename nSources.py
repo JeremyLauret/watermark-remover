@@ -135,42 +135,6 @@ def color_to_gray(colored_matrix):
 
     return gray_matrix
 
-def genere_images(vecteur_noms):
-
-    #***** lecture de l'image par exemple: xxx.jpg
-    n=len(vecteur_noms)
-    images_source=[]
-    for i in range(n):
-        temporaire=(plt.imread(vecteur_noms[i])) / 255
-        if len(temporaire.shape)>2:
-            images_source.append(temporaire[:,:,2])
-        else:
-            images_source.append(temporaire)
- 
-    ##****** dimensions de l'image (nb_lign,nb_col,3)
-
-    [nb_lign, nb_col] = images_source[0].shape    
-      
-    R=[]
-    for i in range(n):
-        R.append(images_source[i])
-    #***** deconstruction de l'image a partir des composantes en des vecteurs
-    R=np.array(R)
-    R_L=[]
-    for k in range(n):
-        R_L_k=[]
-        for j in range(nb_lign):
-            for i in range(nb_col):
-                R_L_k.append(R[k,j,i])  
-    
-        #**** conversion double precision pour la regle de trois Fs double()
-        R_L_k = np.array(R_L_k)
-        #***************** regle de trois pour se ramener dans l'intervalle [0,1]
-        R_L.append(R_L_k)
-    R_L=np.array(R_L)
-     
-    return [R_L, nb_lign, nb_col, images_source]
-
 def matrix_to_vect(img_matrix):
     """
      * Args :
@@ -364,6 +328,143 @@ def mosaique(liste_images, cote):
                 liste_images[k][I*cote:(I+1)*cote, J*cote:(J+1)*cote] = carreaux[k]
     return liste_images
     
+def create_sub_matrix_array(mixed_img_matrix_array, square_side, method = 'pixel_pick') :
+    """
+     * Args :
+         - mixed_img_matrix_array -> tableau des observées (matrices [x 3])
+         - square_side -> longueur du côté des carreaux servant à créer les sous-images
+         - method = 'pixel_pick' -> méthode de création des sous-images
+         
+     * Returns :
+         - mixed_sub_img_matrix -> matrice de tableaux contenant des sous-images (matrices [x 3])
+    """
+    n = len(mixed_img_matrix_array)
+
+    nb_row, nb_col = mixed_img_matrix_array[0].shape[0:2]
+
+    if (method == 'pixel_pick') :
+        mixed_sub_img_matrix = np.zeros((square_side, square_side, n, nb_row // square_side, nb_col // square_side))
+        for i in range(square_side):
+            for j in range(square_side):
+                tile = np.zeros((n, nb_row // square_side, nb_col // square_side))
+
+                for k in range(n) :
+                    tile[k] = mixed_img_matrix_array[k][i : nb_row : square_side, j : nb_col : square_side]
+
+                mixed_sub_img_matrix[i, j] = tile
+
+    elif (method == 'mosaic') :
+        mixed_sub_img_matrix = np.zeros((nb_row // square_side, nb_col // square_side, n, square_side, square_side))
+
+        for i in range(nb_row // square_side):
+            for j in range(nb_col // square_side):
+                tile = np.zeros((n, square_side, square_side))
+                for k in range(n) :
+                    tile[k] = mixed_img_matrix_array[k][i * square_side : (i + 1) * square_side, j * square_side : (j + 1) * square_side]
+
+                mixed_sub_img_matrix[i, j] = tile
+    
+    return mixed_sub_img_matrix
+
+def revert_sub_matrix_array(sub_img_matrix, method = 'pixel_pick') :
+    """
+     * Args :
+         - sub_image_matrix -> matrice de tableaux contenant les approximées des sous-images (matrices [x 3])
+         - method = 'pixel_pick' -> méthode utilisée pour la création des sous-images
+         
+     * Returns :
+         - y -> tableau des approximations (matrices [x 3])
+    """
+    n = len(sub_img_matrix[0, 0])
+
+    if (method == 'pixel_pick') :
+        square_side = sub_img_matrix.shape[0]
+
+        nb_row, nb_col = [x * square_side for x in sub_img_matrix[0, 0, 0].shape[0:2]]
+
+        y = np.zeros((n, nb_row, nb_col))
+
+        for k in range(n) :
+            y[k] = np.zeros((nb_row, nb_col))
+
+            for i in range(nb_row) :
+                for j in range(nb_col) :
+                    y[k, i, j] = sub_img_matrix[i % square_side, j % square_side, k, i // square_side, j // square_side]
+
+    elif (method == 'mosaic') :
+        square_side = sub_img_matrix[0, 0, 0].shape[0]
+
+        nb_row, nb_col = [x * square_side for x in sub_img_matrix.shape[0:2]]
+
+        y = np.zeros(n)
+
+        for k in range(n) :
+            y[k] = np.zeros(nb_row, nb_col)
+
+            for i in range(nb_row) :
+                for j in range(nb_col) :
+                    y[k, i, j] = sub_img_matrix[i // square_side, j // square_side, k, i % square_side, j % square_side]
+
+    return y
+
+def sub_matrix_to_sub_vector(mixed_sub_img_matrix, nb_row_tiles, nb_col_tiles) :
+    """
+     * Args :
+         - mixed_sub_img_matrix -> matrice de tableaux contenant des sous-images (matrices [x 3])
+         
+     * Returns :
+         - mixed_sub_img_vect -> matrice de tableaux contenant des sous-images (vecteurs [x 3])
+         - nb_row_tiles, nb_col_tiles -> dimensions des sous-images sous forme de matrices
+    """
+    nb_row_tiles, nb_col_tiles = mixed_sub_img_matrix[0,0].shape[0:2]
+
+    nb_row, nb_col = mixed_sub_img_matrix.shape[0:2]
+
+    mixed_sub_img_vect = np.zeros(nb_row, nb_col)
+
+    for i in range(nb_row) :
+        for j in range(nb_col) :
+            mixed_sub_img_vect[i, j] = matrix_to_vect_array(mixed_sub_img_matrix[i, j])[0]
+
+    return mixed_sub_img_vect, nb_row_tiles, nb_col_tiles
+
+def separate_sub_mixed(mixed_sub_img_vect) :
+    """
+     * Args :
+         - mixed_sub_img_vect -> matrice de tableaux contenant des sous-images (vecteurs [x 3])
+         
+     * Returns :
+         - y -> matrice de tableaux contenant les approximées des sous-images (vecteurs [x 3])
+    """
+    nb_row, nb_col = mixed_sub_img_vect.shape[0:2]
+
+    y = np.zeros(mixed_sub_img_vect.shape[0:2])
+
+    for i in range(nb_row) :
+        for j in range(nb_col) :
+            y[i,j] = separate_mixed(mixed_sub_img_vect)
+
+    return y
+
+def sub_vector_to_sub_matrix(sub_img_vect, nb_row_tiles, nb_col_tiles) :
+    """
+     * Args :
+         - sub_image_vect -> matrice de tableaux contenant les approximées des sous-images (vecteurs [x 3])
+         - nb_row_tiles, nb_col_tiles -> dimensions des sous-images sous forme de matrices
+         
+     * Returns :
+         - sub_image_matrix -> matrice de tableaux contenant les approximées des sous-images (matrices [x 3])
+    """
+    nb_row, nb_col = mixed_sub_img_vect.shape[0:2]
+
+    sub_img_matrix = np.zeros(nb_row, nb_col)
+
+    for i in range(nb_row) :
+        for j in range(nb_col) :
+            sub_img_matrix[i, j] = vect_to_matrix_array(sub_img_vect[i, j], nb_row_tiles, nb_col_tiles)
+
+    return sub_img_matrix
+
 def mosaique2(liste_images, cote):
     (hauteur, largeur) = liste_images[0].shape[0:2]
     liste_carreaux=[]
@@ -387,7 +488,7 @@ def mosaique2(liste_images, cote):
     return liste_images
 
 ## Programme principal
-
+"""
 print("Chargement des images...")
 
 mixed_img_matrix_array = load_img_from_name(LISTE_NOMS)
@@ -427,13 +528,22 @@ print("Recomposition terminee !")
 show_img(y, 1, "Recomposition ")
 
 """
-lena = plt.imread('img/lena.png')
 
-print("Shape : ", lena.shape)
+## Tests
+mixed_img_matrix_array = load_img_from_name(LISTE_NOMS)
 
-lena_gray = color_to_gray(lena)
+gray_needed = False
 
-plt.imshow(lena_gray)
+for k in range(len(mixed_img_matrix_array)) :
+    if (len(mixed_img_matrix_array[k].shape) > 2) :
+        gray_needed = True
 
-plt.show()
-"""
+if (gray_needed) :
+    print("Conversion des images en gris")
+    for k in range(len(mixed_img_matrix_array)) :
+        mixed_img_matrix_array[k] = color_to_gray(mixed_img_matrix_array[k])
+
+a = create_sub_matrix_array(mixed_img_matrix_array, 8, 'mosaic')
+b = revert_sub_matrix_array(a)
+
+print(b == mixed_img_matrix_array)
