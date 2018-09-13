@@ -19,7 +19,7 @@ IMG_DIR='img/'
 
 LISTE_NOMS=['watermarked-lena.png', 'watermarked-barbara.png', 'barbara.png']
 
-NB_ITER = 2000
+NB_ITER = 20
 
 PAS_AFFICHAGE = NB_ITER//5 # Nombre d'itérations séparant deux affichages
 
@@ -33,6 +33,9 @@ for i in range(len(LISTE_NOMS)):
     LISTE_NOMS[i] = IMG_DIR + LISTE_NOMS[i]
 
 def show_img(img_list, nb_fig, title):
+    """
+     * Shows the matrix images contained in img_list
+    """
     n = len(img_list)
     plt.figure(nb_fig)
     for i in range(n):
@@ -116,7 +119,7 @@ def compute_gradient(B,y,x,lam1):
     return(M_Psi @ B.T - np.eye(len(y)) + lam1 * pen @ B.T)
 
 
-def load_img_from_name(names_list):
+def load_img_from_name(names_list) :
     n = len(names_list)
     matrix_list = []
 
@@ -125,7 +128,7 @@ def load_img_from_name(names_list):
 
     return(matrix_list)
 
-def color_to_gray(colored_matrix):
+def color_to_gray(colored_matrix) :
     gray_matrix = np.zeros((colored_matrix.shape[0:2]))
 
     if (len(colored_matrix.shape) > 2):
@@ -134,6 +137,17 @@ def color_to_gray(colored_matrix):
         gray_matrix += colored_matrix
 
     return gray_matrix
+
+def gray_in_list(matrix_list) :
+    counter = 0
+    gray_needed = False
+
+    while (counter < len(matrix_list) and gray_needed == False) :
+        if (len(matrix_list[counter].shape) > 2) :
+            gray_needed = True
+        counter += 1
+
+    return(gray_needed)
 
 def matrix_to_vect(img_matrix):
     """
@@ -493,13 +507,7 @@ print("Chargement des images...")
 
 mixed_img_matrix_array = load_img_from_name(LISTE_NOMS)
 
-gray_needed = False
-
-for k in range(len(mixed_img_matrix_array)) :
-    if (len(mixed_img_matrix_array[k].shape) > 2) :
-        gray_needed = True
-
-if (gray_needed) :
+if (gray_in_list(mixed_img_matrix_array)) :
     print("Conversion des images en gris")
     for k in range(len(mixed_img_matrix_array)) :
         mixed_img_matrix_array[k] = color_to_gray(mixed_img_matrix_array[k])
@@ -530,20 +538,19 @@ show_img(y, 1, "Recomposition ")
 """
 
 ## Tests
-mixed_img_matrix_array = load_img_from_name(LISTE_NOMS)
+input = load_img_from_name(LISTE_NOMS)
 
-gray_needed = False
-
-for k in range(len(mixed_img_matrix_array)) :
-    if (len(mixed_img_matrix_array[k].shape) > 2) :
-        gray_needed = True
-
-if (gray_needed) :
+if (gray_in_list(input)) :
     print("Conversion des images en gris")
-    for k in range(len(mixed_img_matrix_array)) :
-        mixed_img_matrix_array[k] = color_to_gray(mixed_img_matrix_array[k])
+    for k in range(len(input)) :
+        input[k] = color_to_gray(input[k])
 
-a = create_sub_matrix_array(mixed_img_matrix_array, 8, 'mosaic')
-b = revert_sub_matrix_array(a)
+#a = create_sub_matrix_array(input, 8, 'mosaic')
+#b = revert_sub_matrix_array(a)
+#print(b == input)
 
-print(b == mixed_img_matrix_array)
+a, nb_row, nb_col = matrix_to_vect_array(input)
+b = separate_mixed(a, NB_ITER)
+c = vect_to_matrix_array(b, nb_row, nb_col)
+
+show_img(c, 1, "Input")
