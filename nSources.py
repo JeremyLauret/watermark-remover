@@ -11,13 +11,15 @@ import matplotlib.pyplot as plt
 
 import scipy.ndimage as ndimage
 
+import PIL
+
 plt.rcParams['image.cmap'] = 'gray' 
 
 """ Constants """
 
 IMG_DIR='img/'
 
-LISTE_NOMS=['watermarked-lena.png', 'watermarked-barbara.png', 'barbara.png']
+LISTE_NOMS=['image1.png', 'image2.png', 'image3.png']
 
 NB_ITER = 20
 
@@ -31,6 +33,33 @@ LAMBDA = 1
 
 for i in range(len(LISTE_NOMS)):
     LISTE_NOMS[i] = IMG_DIR + LISTE_NOMS[i]
+
+def mix_img(img_matrix_1, img_matrix_2, alpha, output_name) :
+    """
+     * Args :
+         - img_matrix_1, img_matrix_2 -> images à mélanger (matrices)
+         - alpha -> proportions du mélange (alpha de l'image 1, (1-alpha) de l'image 2)
+         - output_name -> nom de l'image sauvegardée
+    """
+    if (img_matrix_1.shape[0:2] != img_matrix_2.shape[0:2]) :
+        print("Erreur : images de tailles différentes!")
+        return
+
+    if (len(img_matrix_1.shape) == len(img_matrix_2.shape)) :
+        mixed_matrix = alpha * img_matrix_1 + (1 - alpha) * img_matrix_2
+
+    elif (len(img_matrix_1.shape) > 2) :
+        mixed_matrix = np.zeros_like(img_matrix_1)
+        for k in range(mixed_matrix.shape[2]) :
+            mixed_matrix[:, :, k] = alpha * img_matrix_1[:, :, k] + (1 - alpha) * img_matrix_2
+
+    else :
+        mixed_matrix = np.zeros_like(img_matrix_2)
+        for k in range(mixed_matrix.shape[2]) :
+            mixed_matrix[:, :, k] = alpha * img_matrix_1 + (1 - alpha) * img_matrix_2[:, :, k]
+
+    plt.imsave(output_name, mixed_matrix)
+    return
 
 def show_img(img_list, nb_fig, title):
     """
@@ -538,6 +567,7 @@ show_img(y, 1, "Recomposition ")
 """
 
 ## Tests
+"""
 input = load_img_from_name(LISTE_NOMS)
 
 if (gray_in_list(input)) :
@@ -554,3 +584,8 @@ b = separate_mixed(a, NB_ITER)
 c = vect_to_matrix_array(b, nb_row, nb_col)
 
 show_img(c, 1, "Input")
+"""
+
+input = load_img_from_name(LISTE_NOMS)
+
+mix_img(input[1], input[2], 0.35, IMG_DIR + "marching_on_rails.png")
