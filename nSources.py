@@ -17,7 +17,9 @@ plt.rcParams['image.cmap'] = 'gray'
 
 IMG_DIR='img/'
 
-LISTE_NOMS=['image1.jpg', 'image2.jpg', 'image3.jpg']
+LISTE_NOMS=['barbara.png', 'lena.png']#, 'image3.jpg']
+
+#LISTE_NOMS=['image1.jpg', 'image2.jpg']#, 'image3.jpg']
 
 NB_ITER = 100
 
@@ -247,7 +249,7 @@ def vect_to_matrix_array(img_vect_array, nb_row, nb_col):
     n = len(img_vect_array)
 
     if (len(img_vect_array[0].shape) > 1) : # Images colorées
-        img_matrix_array = [np.zeros(nb_row, nb_col, img_vect_array[k].shape[1]) for k in range(n)]
+        img_matrix_array = [np.zeros((nb_row, nb_col, img_vect_array[k].shape[1])) for k in range(n)]
 
         for i in range(n) :
             for j in range(img_vect_array[0].shape[1]) :
@@ -320,8 +322,6 @@ def separate_mixed_color(mixed_img_array_color, nb_iter):
 
     y = [np.zeros(mixed_img_array_color[i].shape) for i in range(n)]
 
-    print(mixed_img_array_color[0].shape)
-
     for couleur in range(mixed_img_array_color[0].shape[1]):
         colorList = []
 
@@ -393,7 +393,10 @@ def mosaique2(liste_images, cote):
 print("Chargement des images...")
 
 mixed_img_matrix_array = load_img_from_name(LISTE_NOMS)
-"""
+
+mixed_img_matrix_array[0] = 0.6*mixed_img_matrix_array[0] + 0.4*mixed_img_matrix_array[1]
+mixed_img_matrix_array[1] = mixed_img_matrix_array[1]*0.6 + 0.4*mixed_img_matrix_array[0]
+
 gray_needed = False
 
 for k in range(len(mixed_img_matrix_array)) :
@@ -403,7 +406,7 @@ for k in range(len(mixed_img_matrix_array)) :
 if (gray_needed) :
     print("Conversion des images en gris")
     for k in range(len(mixed_img_matrix_array)) :
-        mixed_img_matrix_array[k] = color_to_gray(mixed_img_matrix_array[k])"""
+        mixed_img_matrix_array[k] = color_to_gray(mixed_img_matrix_array[k])
 
 print("Conversion des images en vecteurs...")
 
@@ -411,31 +414,24 @@ mixed_img_vect_array, nb_row, nb_col = matrix_to_vect_array(mixed_img_matrix_arr
 
 print("Recomposition des sources à partir des observées...")
 
-y = separate_mixed_color(mixed_img_vect_array, NB_ITER)
+y = separate_mixed(mixed_img_vect_array, NB_ITER)
 
 #y = mosaique2(mixed_img_matrix_array, 4)
 
 print("Recomposition terminee !")
 
 #Affichage final
-
-clean_img_array = []
 """
+clean_img_array = []
+
 for k in range(len(y)):
    clean_img_array.append((y[k] - min(y[k])) / (max(y[k]) - min(y[k])) * 255)
 """
-recomposed_img = vect_to_matrix_array(clean_img_array, nb_row, nb_col)
+recomposed_img = vect_to_matrix_array(y, nb_row, nb_col)
 
-show_img(y, 1, "Recomposition ")
-
-"""
-lena = plt.imread('img/lena.png')
-
-print("Shape : ", lena.shape)
-
-lena_gray = color_to_gray(lena)
-
-plt.imshow(lena_gray)
-
+plt.figure(1)
+plt.imshow(recomposed_img[0])
+plt.figure(2)
+plt.imshow(recomposed_img[1])
 plt.show()
-"""
+#show_img(recomposed_img, 1, "Recomposition ")
