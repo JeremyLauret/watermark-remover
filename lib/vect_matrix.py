@@ -1,7 +1,8 @@
 ## Fichier d'outils de convertion de matrices en vecteurs et vice-versa
+import numpy as np
 
 
-def matrix_to_vect(img_matrix):
+def matrix_to_vect(img_matrix): #
     """
      * Args :
          - img_matrix -> tableau de dimensions nb_row x nb_col représentant une image
@@ -12,16 +13,16 @@ def matrix_to_vect(img_matrix):
     """
     nb_row, nb_col = img_matrix.shape[0:2]
 
-    img_vect = np.zeros((nb_row * nb_col))
+    img_vect = np.zeros((nb_row*nb_col))
 
     for i in range(nb_row):
         for j in range(nb_col):
-            img_vect[nb_col * i + j] = img_matrix[i, j]
+            img_vect[nb_col*i + j] = img_matrix[i, j]
 
     return img_vect, nb_row, nb_col
 
 
-def vect_to_matrix(img_vect, nb_row, nb_col):
+def vect_to_matrix(img_vect, nb_row, nb_col): #
     """
      * Args :
          - img_vect -> vecteur 1D des lignes d'une images mises bout à bout
@@ -34,12 +35,12 @@ def vect_to_matrix(img_vect, nb_row, nb_col):
 
     for i in range(nb_row):
         for j in range(nb_col):
-            img_matrix[i, j] = img_vect[i * nb_col + j]
+            img_matrix[i, j] = img_vect[i*nb_col + j]
 
     return img_matrix
 
 
-def matrix_to_vect_array(img_matrix_array):
+def matrix_to_vect_array(img_matrix_array): #
     """
      * Args :
          - img_matrix_array -> tableau des images (matrices nb_row x nb_col [x 3])
@@ -53,14 +54,14 @@ def matrix_to_vect_array(img_matrix_array):
     nb_row, nb_col = img_matrix_array[0].shape[0:2]
 
     if (len(img_matrix_array[0].shape) > 2):  # Images colorées
-        img_vect_array = [np.zeros(nb_row * nb_col, img_matrix_array[k].shape[2]) for k in range(n)]
+        img_vect_array = [np.zeros((nb_row*nb_col, img_matrix_array[k].shape[2])) for k in range(n)]
 
         for i in range(n):
             for j in range(img_matrix_array[0].shape[2]):
                 img_vect_array[i][:, j] += matrix_to_vect(img_matrix_array[i][:, :, j])[0]
 
     else:
-        img_vect_array = [np.zeros(nb_row * nb_col) for k in range(n)]
+        img_vect_array = [np.zeros(nb_row*nb_col) for k in range(n)]
 
         for i in range(n):
             img_vect_array[i] += matrix_to_vect(img_matrix_array[i])[0]
@@ -68,7 +69,7 @@ def matrix_to_vect_array(img_matrix_array):
     return img_vect_array, nb_row, nb_col
 
 
-def vect_to_matrix_array(img_vect_array, nb_row, nb_col):
+def vect_to_matrix_array(img_vect_array, nb_row, nb_col): #
     """
      * Args :
          - img_vect_array -> tableau des images (vecteurs [x 3])
@@ -80,7 +81,7 @@ def vect_to_matrix_array(img_vect_array, nb_row, nb_col):
     n = len(img_vect_array)
 
     if (len(img_vect_array[0].shape) > 1):  # Images colorées
-        img_matrix_array = [np.zeros(nb_row, nb_col, img_vect_array[k].shape[1]) for k in range(n)]
+        img_matrix_array = [np.zeros((nb_row, nb_col, img_vect_array[k].shape[1])) for k in range(n)]
 
         for i in range(n):
             for j in range(img_vect_array[0].shape[1]):

@@ -2,3 +2,4 @@ venv/
 .vscode/
 .idea/
 test.py
+lib/__pycache__

@@ -1,21 +1,22 @@
 ## Fichier d'outils de manipulation des images
+import matplotlib.pyplot as plt
+import numpy as np
 
-
-def show_img(img_list, nb_fig, title):
+def show_img(img_list, nb_fig, title): #
     """
      * Shows the matrix images contained in img_list
     """
     n = len(img_list)
     plt.figure(nb_fig)
     for i in range(n):
-        plt.subplot(n/3 if n/3 == n//3 else n//3, 3, i+1)
+        plt.subplot(np.ceil(n/3), 3 if n >= 3 else n, i+1)
         plt.title(title + str(i))
         plt.imshow(img_list[i])
     plt.show()
     return(nb_fig + 1)
 
 
-def load_img_from_name(names_list) :
+def load_img_from_name(names_list): #
     n = len(names_list)
     matrix_list = []
 
@@ -25,7 +26,7 @@ def load_img_from_name(names_list) :
     return(matrix_list)
 
 
-def color_to_gray(colored_matrix) :
+def color_to_gray(colored_matrix): #
     gray_matrix = np.zeros((colored_matrix.shape[0:2]))
 
     if (len(colored_matrix.shape) > 2):
@@ -36,12 +37,12 @@ def color_to_gray(colored_matrix) :
     return gray_matrix
 
 
-def gray_in_list(matrix_list) :
+def gray_in_list(matrix_list): #
     counter = 0
     gray_needed = False
 
     while (counter < len(matrix_list) and gray_needed == False) :
-        if (len(matrix_list[counter].shape) > 2) :
+        if (len(matrix_list[counter].shape) < 2) :
             gray_needed = True
         counter += 1
 
