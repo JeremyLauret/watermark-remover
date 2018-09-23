@@ -1,4 +1,5 @@
 ## Fichier de séparation de n images mixées
+import numpy as np
 
 
 def compute_gradient(B, y, x, lam1):
@@ -73,91 +74,102 @@ def compute_gradient(B, y, x, lam1):
 
     return (M_Psi @ B.T - np.eye(len(y)) + lam1 * pen @ B.T)
 
-def separate_mixed_unicolor(mixed_img_array, nb_iter):
+def separate_mixed_unicolor(input_list_v, nb_iter, lambd, mu):
     """
      * Args :
-         - mixed_img_array -> tableau des observées (vecteurs)
+         - input_list_v -> liste des observées (vecteurs)
          - nb_iter -> nombre d'itérations de descente du gradient
+         - lambd, mu
 
      * Returns :
-         - y -> tableau des approximations (vecteurs)
+         - output_list_v -> liste des approximations (vecteurs)
+         - dtype -> type de données des observées
     """
-    n = len(mixed_img_array)
-
+    n = len(input_list_v)
     B = np.eye(n)
+    dtype = input_list_v[0].dtype
 
-    ## Normalisation ##
+    ## Normalisation
     for i in range(n):
-        mixed_img_array[i] = mixed_img_array[i] - np.mean(mixed_img_array[i])
-        mixed_img_array[i] = mixed_img_array[i] / np.std(mixed_img_array[i])
-    ##               ##
+        input_list_v[i] = (input_list_v[i] - np.mean(input_list_v[i])) / np.std(input_list_v[i])
 
-    x = mixed_img_array
-
-    y = x
+    output_list_v = input_list_v
 
     for k in range(nb_iter):
-        if (k % (nb_iter // 2) == 0):
+        if (k % (nb_iter // 10 if nb_iter >= 10 else nb_iter) == 0):
             print("Progress : ", np.floor(k / nb_iter * 100), "%")
 
-        grad_J = compute_gradient(B, y, x, LAMBDA)
+        grad_J = compute_gradient(B, output_list_v, input_list_v, lambd)
 
-        B = B - MU * grad_J
+        B = B - mu * grad_J
 
-        y = np.dot(B, x)
+        output_list_v = np.dot(B, input_list_v)
 
         for i in range(n):
-            y[i] = y[i] - np.mean(y[i])
+            output_list_v[i] = output_list_v[i] - np.mean(output_list_v[i])
 
-    return y
+    return output_list_v, dtype
 
 
-def separate_mixed_color(mixed_img_array_color, nb_iter):
+def separate_mixed_color(input_list_v, nb_iter, lambd, mu):
     """
      * Args :
-         - mixed_img_array_color -> tableau des observées en couleur (vecteurs x 3)
+         - input_list_v -> tableau des observées en couleur (vecteurs x 3)
          - nb_iter -> nombre d'itérations de descente du gradient
 
      * Returns :
-         - y -> tableau des approximations en couleur (vecteurs x 3)
+         - output_list_v -> tableau des approximations en couleur (vecteurs x 3)
+         - dtype
     """
-    n = len(mixed_img_array_color)
+    n = len(input_list_v)
+    col_number = input_list_v[0].shape[1]
 
-    y = [np.zeros(mixed_img_array_color[i].shape) for i in range(n)]
+    input_list_v_col = [[] for i in range(col_number)]
+    output_list_v_col = []
+    output_list_v = []
 
-    for couleur in range(mixed_img_array_color[0].shape[2]):
-        colorList = []
-
-        for i in range(n):
-            colorList.append(mixed_img_array_color[i][:, :, couleur])
-
-        colorList = separate_mixed_unicolor(colorList, nb_iter)
-
+    for i in range(col_number):
         for j in range(n):
-            y[j][:, :, couleur] += colorList[j]
+            input_list_v_col[i].append(input_list_v[j][:, i])
 
-    return y
+    for i in range(col_number):
+        output_v_col, dtype = separate_mixed_unicolor(input_list_v_col[i], nb_iter, lambd, mu)
+        output_list_v_col.append(output_v_col)
+
+    for i in range(n):
+        output_v = np.zeros(
+            (output_list_v_col[0][0].shape[0], col_number),
+            dtype=output_list_v_col[0][0].dtype
+        )
+
+        for j in range(col_number):
+            output_v[:, j] = output_list_v_col[j][i]
+
+        output_list_v.append(output_v)
+
+    return output_list_v, dtype
 
 
-def separate_mixed(mixed_img_array, nb_iter):
+def separate_mixed(input_list_v, nb_iter, lambd, mu):
     """
      * Args :
-         - mixed_img_array -> tableau des observées (vecteurs [x 3])
+         - input_list_v -> liste des observées (vecteurs [x 3])
          - nb_iter -> nombre d'itérations de descente du gradient
 
      * Returns :
-         - y -> tableau des approximations (vecteurs [x 3])
+         - output_list_v -> liste des approximations (vecteurs [x 3])
+         - dtype -> type de données des observées
     """
-    if (len(mixed_img_array[0].shape) > 1):  # Images en couleur
-        y = separate_mixed_color(mixed_img_array, nb_iter)
+    if (len(input_list_v[0].shape) > 1):  # Images en couleur
+        output_list_v, dtype = separate_mixed_color(input_list_v, nb_iter, lambd, mu)
 
     else:
-        y = separate_mixed_unicolor(mixed_img_array, nb_iter)
+        output_list_v, dtype = separate_mixed_unicolor(input_list_v, nb_iter, lambd, mu)
 
-    return y
+    return output_list_v, dtype
 
 
-def separate_sub_mixed(mixed_sub_img_vect):
+def separate_sub_mixed(mixed_sub_img_vect): # Work in progress
     """
      * Args :
          - mixed_sub_img_vect -> matrice de tableaux contenant des sous-images (vecteurs [x 3])

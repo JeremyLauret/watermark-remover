@@ -2,101 +2,107 @@
 import numpy as np
 
 
-def matrix_to_vect(img_matrix): #
+def matrix_to_vect(matrix):
     """
+     * Only works for dim 2 or dim 3 matrix
+
      * Args :
-         - img_matrix -> tableau de dimensions nb_row x nb_col représentant une image
+         - img_matrix -> tableau de dimensions nb_row x nb_col [x 3 | x 4] représentant une image
 
      * Returns :
-         - img_vect -> vecteur 1D des lignes de la matrice mises bout à bout
+         - vect -> vecteur 1D des lignes de la matrice mises bout à bout
          - nb_row, nb_col
     """
-    nb_row, nb_col = img_matrix.shape[0:2]
+    nb_row, nb_col = matrix.shape[0:2]
 
-    img_vect = np.zeros((nb_row*nb_col))
+    vect = np.zeros(tuple([nb_row*nb_col]) + matrix.shape[2:], dtype=matrix.dtype)
 
-    for i in range(nb_row):
-        for j in range(nb_col):
-            img_vect[nb_col*i + j] = img_matrix[i, j]
+    if (len(matrix.shape) == 2):
+        for i in range(nb_row):
+            for j in range(nb_col):
+                vect[nb_col*i + j] = matrix[i, j]
 
-    return img_vect, nb_row, nb_col
+    elif (len(matrix.shape) == 3):
+        for i in range(nb_row):
+            for j in range(nb_col):
+                vect[nb_col*i + j, :] = matrix[i, j, :]
+
+    else:
+        print('Erreur : longueur de la matrice incompatible avec la conversion en vecteur.')
+
+    return vect, nb_row, nb_col
 
 
-def vect_to_matrix(img_vect, nb_row, nb_col): #
+def vect_to_matrix(vect, nb_row, nb_col):
     """
+     * Only works for dim 1 or dim 2 vect
+
      * Args :
-         - img_vect -> vecteur 1D des lignes d'une images mises bout à bout
+         - vect -> vecteur 1D des lignes d'une images mises bout à bout
          - nb_row, nb_col -> dimensions de la matrice retournée
 
      * Returns :
-         - img_matrix -> tableau de dimensions nb_row x nb_col représentant l'image
+         - matrix -> tableau de dimensions nb_row x nb_col représentant l'image
     """
-    img_matrix = np.zeros((nb_row, nb_col))
+    matrix = np.zeros((nb_row, nb_col) + vect.shape[1:], dtype=vect.dtype)
 
-    for i in range(nb_row):
-        for j in range(nb_col):
-            img_matrix[i, j] = img_vect[i*nb_col + j]
+    if (len(vect.shape) == 1):
+        for i in range(nb_row):
+            for j in range(nb_col):
+                matrix[i, j] = vect[i*nb_col + j]
 
-    return img_matrix
+    elif (len(vect.shape) == 2):
+        for i in range(nb_row):
+            for j in range(nb_col):
+                matrix[i, j, :] = vect[i*nb_col + j, :]
+
+    return matrix
 
 
-def matrix_to_vect_array(img_matrix_array): #
+def matrix_to_vect_list(matrix_list):
     """
+     * Only works for dim 2 or dim 3 matrix
+
      * Args :
-         - img_matrix_array -> tableau des images (matrices nb_row x nb_col [x 3])
+         - matrix_list -> liste des images (matrices nb_row x nb_col [x 3 | x 4])
 
      * Returns :
-         - img_vect_array -> tableau des images (vecteurs [x 3])
-         - nb_row, nb_col
+         - vect_list -> liste des images (vecteurs nb_row*nb_col [x 3 | x 4])
+         - nb_row_list, nb_col_list
     """
-    n = len(img_matrix_array)
+    n = len(matrix_list)
+    nb_row_list, nb_col_list, vect_list = [], [], []
 
-    nb_row, nb_col = img_matrix_array[0].shape[0:2]
+    for i in range(n):
+        converted = matrix_to_vect(matrix_list[i])
+        vect_list.append(converted[0])
+        nb_row_list.append(converted[1])
+        nb_col_list.append(converted[2])
 
-    if (len(img_matrix_array[0].shape) > 2):  # Images colorées
-        img_vect_array = [np.zeros((nb_row*nb_col, img_matrix_array[k].shape[2])) for k in range(n)]
-
-        for i in range(n):
-            for j in range(img_matrix_array[0].shape[2]):
-                img_vect_array[i][:, j] += matrix_to_vect(img_matrix_array[i][:, :, j])[0]
-
-    else:
-        img_vect_array = [np.zeros(nb_row*nb_col) for k in range(n)]
-
-        for i in range(n):
-            img_vect_array[i] += matrix_to_vect(img_matrix_array[i])[0]
-
-    return img_vect_array, nb_row, nb_col
+    return vect_list, nb_row_list, nb_col_list
 
 
-def vect_to_matrix_array(img_vect_array, nb_row, nb_col): #
+def vect_to_matrix_list(vect_list, nb_row_list, nb_col_list):
     """
+     * Only works for dim 1 or dim 2 vect
+
      * Args :
-         - img_vect_array -> tableau des images (vecteurs [x 3])
-         - nb_row, nb_col -> dimensions des matrices retournées
+         - vect_list -> liste des images (vecteurs nb_row*nb_col [x 3 | x 4])
+         - nb_row_list, nb_col_list -> listes des dimensions des matrices retournées
 
      * Returns :
-         - img_matrix_array -> tableau des images (matrices nb_row x nb_col [x 3])
+         - matrix_list -> liste des images (matrices nb_row x nb_col [x 3 | x 4])
     """
-    n = len(img_vect_array)
+    n = len(vect_list)
+    matrix_list = []
 
-    if (len(img_vect_array[0].shape) > 1):  # Images colorées
-        img_matrix_array = [np.zeros((nb_row, nb_col, img_vect_array[k].shape[1])) for k in range(n)]
+    for i in range(n):
+        matrix_list.append(vect_to_matrix(vect_list[i], nb_row_list[i], nb_col_list[i]))
 
-        for i in range(n):
-            for j in range(img_vect_array[0].shape[1]):
-                img_matrix_array[i][:, :, j] += vect_to_matrix(img_vect_array[i][:, j], nb_row, nb_col)
-
-    else:
-        img_matrix_array = [np.zeros((nb_row, nb_col)) for k in range(n)]
-
-        for i in range(n):
-            img_matrix_array[i] += vect_to_matrix(img_vect_array[i], nb_row, nb_col)
-
-    return img_matrix_array
+    return matrix_list
 
 
-def sub_matrix_to_sub_vector(mixed_sub_img_matrix):
+def sub_matrix_to_sub_vector(mixed_sub_img_matrix): # Work in progress
     """
      * Args :
          - mixed_sub_img_matrix -> matrice de tableaux contenant des sous-images (matrices [x 3])
@@ -118,7 +124,7 @@ def sub_matrix_to_sub_vector(mixed_sub_img_matrix):
     return mixed_sub_img_vect, nb_row_tiles, nb_col_tiles
 
 
-def sub_vector_to_sub_matrix(sub_img_vect, nb_row_tiles, nb_col_tiles):
+def sub_vector_to_sub_matrix(sub_img_vect, nb_row_tiles, nb_col_tiles): # Work in progress
     """
      * Args :
          - sub_image_vect -> matrice de tableaux contenant les approximées des sous-images (vecteurs [x 3])

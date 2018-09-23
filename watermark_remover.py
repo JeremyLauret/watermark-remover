@@ -1,5 +1,15 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import lib.img_utils as img_utils
+import lib.mosaic as mosaic
+import lib.separate_mixed as sep
+import lib.vect_matrix as vm
+import importlib
+importlib.reload(img_utils)
+importlib.reload(mosaic)
+importlib.reload(sep)
+importlib.reload(vm)
+
 
 plt.rcParams['image.cmap'] = 'gray'
 
@@ -7,9 +17,10 @@ plt.rcParams['image.cmap'] = 'gray'
 
 IMG_DIR='img/'
 
-LISTE_NOMS=['image1.png', 'image2.png', 'image3.png']
+# LISTE_NOMS=['watermarked_lena.png', 'watermarked_barbara.png', 'barbara.png']
+LISTE_NOMS=['watermarked-barbara.png', 'watermarked-lena.png', 'barbara.png']
 
-NB_ITER = 20
+NB_ITER = 1000
 
 PAS_AFFICHAGE = NB_ITER//5 # Nombre d'itérations séparant deux affichages
 
@@ -21,62 +32,27 @@ for i in range(len(LISTE_NOMS)):
     LISTE_NOMS[i] = IMG_DIR + LISTE_NOMS[i]
 
 
-## Programme principal
-"""
 print("Chargement des images...")
+input_list_m = img_utils.load_img_from_name(LISTE_NOMS)
 
-mixed_img_matrix_array = load_img_from_name(LISTE_NOMS)
-
-if (gray_in_list(mixed_img_matrix_array)) :
+if (img_utils.gray_in_list(input_list_m)) :
     print("Conversion des images en gris")
-    for k in range(len(mixed_img_matrix_array)) :
-        mixed_img_matrix_array[k] = color_to_gray(mixed_img_matrix_array[k])
+    for k in range(len(input_list_m)) :
+        input_list_m[k] = img_utils.color_to_gray(input_list_m[k])
 
-#print("Conversion des images en vecteurs...")
-#
-#mixed_img_vect_array, nb_row, nb_col = matrix_to_vect_array(mixed_img_matrix_array)
-#
-#print("Recomposition des sources à partir des observées...")
-#
-#y = separate_mixed(mixed_img_vect_array, NB_ITER)
+print("Conversion des images en vecteurs...")
+input_list_v, nb_row_list, nb_col_list = vm.matrix_to_vect_list(input_list_m)
 
-y = mosaique2(mixed_img_matrix_array, 4)
+print("Recomposition des sources à partir des observées...")
+output_list_v, dtype = sep.separate_mixed(input_list_v, NB_ITER, LAMBDA, MU)
 
 print("Recomposition terminee !")
 
-# Affichage final
-#
-#clean_img_array = []
-#
-#for k in range(len(y)):
-#    clean_img_array.append((y[k] - min(y[k])) / (max(y[k]) - min(y[k])) * 255)
-#
-#recomposed_img = vect_to_matrix_array(clean_img_array, nb_row, nb_col)
+output_list_v_pre_norm = img_utils.rev_norm(output_list_v) # Inverse la normalisation des valeurs
 
-show_img(y, 1, "Recomposition ")
+output_list_m = vm.vect_to_matrix_list(output_list_v_pre_norm, nb_row_list, nb_col_list)
 
-"""
+for i in range(len(output_list_m)):
+    output_list_m = dtype.type(output_list_m) # Rétablit le type de données d'origine
 
-## Tests
-"""
-input = load_img_from_name(LISTE_NOMS)
-
-if (gray_in_list(input)) :
-    print("Conversion des images en gris")
-    for k in range(len(input)) :
-        input[k] = color_to_gray(input[k])
-
-#a = create_sub_matrix_array(input, 8, 'mosaic')
-#b = revert_sub_matrix_array(a)
-#print(b == input)
-
-a, nb_row, nb_col = matrix_to_vect_array(input)
-b = separate_mixed(a, NB_ITER)
-c = vect_to_matrix_array(b, nb_row, nb_col)
-
-show_img(c, 1, "Input")
-"""
-
-input = load_img_from_name(LISTE_NOMS)
-
-mix_img(input[1], input[2], 0.35, IMG_DIR + "marching_on_rails.png")
+img_utils.show_img(output_list_m, 1, "Mixed ")

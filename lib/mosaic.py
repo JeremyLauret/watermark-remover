@@ -13,7 +13,7 @@ def mosaique(liste_images, cote):
     return liste_images
 
 
-def create_sub_matrix_array(mixed_img_matrix_array, square_side, method='pixel_pick'):
+def create_sub_matrix_array(mixed_img_matrix_array, square_side, method='pixel_pick'): # Work in progress
     """
      * Args :
          - mixed_img_matrix_array -> tableau des observées (matrices [x 3])
@@ -53,7 +53,7 @@ def create_sub_matrix_array(mixed_img_matrix_array, square_side, method='pixel_p
     return mixed_sub_img_matrix
 
 
-def revert_sub_matrix_array(sub_img_matrix, method='pixel_pick'):
+def revert_sub_matrix_array(sub_img_matrix, method='pixel_pick'): # Work in progress
     """
      * Args :
          - sub_image_matrix -> matrice de tableaux contenant les approximées des sous-images (matrices [x 3])
