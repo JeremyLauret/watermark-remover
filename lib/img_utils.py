@@ -66,29 +66,22 @@ def rev_norm(list):
     return rev_list
 
 
-def mix_img(img_matrix_1, img_matrix_2, alpha, output_name) : # Work in progress
+def mix_img(matrix_1, matrix_2, alpha, output_name) : # Work in progress
     """
      * Args :
          - img_matrix_1, img_matrix_2 -> images à mélanger (matrices)
          - alpha -> proportions du mélange (alpha de l'image 1, (1-alpha) de l'image 2)
-         - output_name -> nom de l'image sauvegardée
+         - output_name -> nom de l'image à enregistrer
     """
-    if (img_matrix_1.shape[0:2] != img_matrix_2.shape[0:2]) :
-        print("Erreur : images de tailles différentes!")
+    if (matrix_1.shape[0:2] != matrix_2.shape[0:2]):
+        print('Erreur : Impossible de mélanger des images de dimensions différentes !')
         return
 
-    if (len(img_matrix_1.shape) == len(img_matrix_2.shape)) :
-        mixed_matrix = alpha * img_matrix_1 + (1 - alpha) * img_matrix_2
+    if (gray_in_list([matrix_1, matrix_2])) :
+        matrix_1 = color_to_gray(matrix_1)
+        matrix_2 = color_to_gray(matrix_2)
 
-    elif (len(img_matrix_1.shape) > 2) :
-        mixed_matrix = np.zeros_like(img_matrix_1)
-        for k in range(mixed_matrix.shape[2]) :
-            mixed_matrix[:, :, k] = alpha * img_matrix_1[:, :, k] + (1 - alpha) * img_matrix_2
-
-    else :
-        mixed_matrix = np.zeros_like(img_matrix_2)
-        for k in range(mixed_matrix.shape[2]) :
-            mixed_matrix[:, :, k] = alpha * img_matrix_1 + (1 - alpha) * img_matrix_2[:, :, k]
+    mixed_matrix = matrix_1.dtype.type(alpha*matrix_1 + (1-alpha)*matrix_2)
 
     plt.imsave(output_name, mixed_matrix)
     return

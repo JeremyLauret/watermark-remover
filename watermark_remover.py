@@ -18,7 +18,7 @@ plt.rcParams['image.cmap'] = 'gray'
 IMG_DIR='img/'
 
 # LISTE_NOMS=['watermarked_lena.png', 'watermarked_barbara.png', 'barbara.png']
-LISTE_NOMS=['watermarked-barbara.png', 'watermarked-lena.png', 'barbara.png']
+LISTE_NOMS=['war_on_rails_35.jpg', 'war_on_rails_65.jpg']
 
 NB_ITER = 1000
 
@@ -31,9 +31,12 @@ LAMBDA = 1
 for i in range(len(LISTE_NOMS)):
     LISTE_NOMS[i] = IMG_DIR + LISTE_NOMS[i]
 
-
 print("Chargement des images...")
-input_list_m = img_utils.load_img_from_name(LISTE_NOMS)
+input_list_m = img_utils.load_img_from_name(LISTE_NOMS) # Supprime l'opacité s'il y en a
+
+# img_utils.mix_img(input_list_m[0], input_list_m[1], 0.35, 'img/war_on_rails_35.jpg')
+
+# img_utils.mix_img(input_list_m[0], input_list_m[1], 0.65, 'img/war_on_rails_65.jpg')
 
 if (img_utils.gray_in_list(input_list_m)) :
     print("Conversion des images en gris")
