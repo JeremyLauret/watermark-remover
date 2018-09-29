@@ -6,11 +6,11 @@ import lib.separate_mixed as sep
 import lib.vect_matrix as vm
 import lib.finition_utils as finition
 import importlib
-importlib.reload(img_utils)
-importlib.reload(mosaic)
-importlib.reload(sep)
-importlib.reload(vm)
-importlib.reload(finition)
+# importlib.reload(img_utils)
+# importlib.reload(mosaic)
+# importlib.reload(sep)
+# importlib.reload(vm)
+# importlib.reload(finition)
 
 
 plt.rcParams['image.cmap'] = 'gray'
@@ -20,11 +20,11 @@ plt.rcParams['image.cmap'] = 'gray'
 IMG_DIR='img/'
 
 # LISTE_NOMS=['playmobil_on_rails_35.jpg', 'playmobil_on_rails_65.jpg']
-# LISTE_NOMS=['watermarked_rails.png', 'watermarked_warscene.png', 'image1.jpg']
+LISTE_NOMS=['watermarked_rails.png', 'watermarked_warscene.png', 'warscene.jpg']
 # LISTE_NOMS=['watermarked-lena.png', 'watermarked-barbara.png', 'barbara.png']
-LISTE_NOMS=['watermarked_lena.png', 'watermarked_barbara.png', 'barbara.png']
+# LISTE_NOMS=['watermarked_lena.png', 'watermarked_barbara.png', 'barbara.png']
 
-NB_ITER = 1000
+NB_ITER = 100
 
 MU = 0.01
 
