@@ -66,7 +66,7 @@ def rev_norm(list):
     return rev_list
 
 
-def mix_img(matrix_1, matrix_2, alpha, output_name) : # Work in progress
+def mix_img(matrix_1, matrix_2, alpha, output_name) :
     """
      * Args :
          - img_matrix_1, img_matrix_2 -> images à mélanger (matrices)

@@ -3,8 +3,10 @@ import numpy as np
 
 
 def compute_gradient(B, y, x, lam1):
-    m_y = np.zeros((len(y), 6))
-    for i in range(len(y)):
+    n = len(y)
+
+    m_y = np.zeros((n, 6))
+    for i in range(n):
         m_y[i][0] = np.mean(y[i])
         m_y[i][1] = np.mean(y[i] ** 2)
         m_y[i][2] = np.mean(y[i] ** 3)
@@ -12,17 +14,17 @@ def compute_gradient(B, y, x, lam1):
         m_y[i][4] = np.mean(y[i] ** 5)
         m_y[i][5] = np.mean(y[i] ** 6)
 
-    K = np.zeros((len(y), 4))  # base des polynomes de degré 3 pour approcher fonction score
+    K = np.zeros((n, 4))  # base des polynomes de degré 3 pour approcher fonction score
 
-    for i in range(len(y)):
+    for i in range(n):
         K[i][0] = 1
         K[i][1] = m_y[i][0]
         K[i][2] = m_y[i][1]
         K[i][3] = m_y[i][2]
 
-    M = np.zeros((len(y), 4, 4))
+    M = np.zeros((n, 4, 4))
 
-    for i in range(len(y)):
+    for i in range(n):
         M[i][0][0] = 1
         M[i][0][1] = m_y[i][0]
         M[i][0][2] = m_y[i][1]
@@ -41,38 +43,112 @@ def compute_gradient(B, y, x, lam1):
         M[i][3][3] = m_y[i][5]
 
     P = []
-    for i in range(len(y)):
+    for i in range(n):
         P.append([[0, 1, 2 * m_y[i][0], 3 * (m_y[i][1])]])
     P = np.array(P)
 
     w = []
-    for i in range(len(y)):
+    for i in range(n):
         w.append(np.linalg.inv(np.array(M[i])) @ np.array(P[i]).T)
 
     w = np.array(w)
 
     Psi_y = []
-    for i in range(len(y)):
+    for i in range(n):
         Psi_y.append(w[i][0] + w[i][1] * y[i] + w[i][2] * y[i] ** 2 + w[i][3] * y[i] ** 3)
 
-    M_Psi = np.zeros((len(y), len(y)))
-    for i in range(len(y)):
-        for j in range(len(y)):
+    M_Psi = np.zeros((n, n))
+    for i in range(n):
+        for j in range(n):
             M_Psi[i][j] = np.mean(Psi_y[i] * x[j])
 
-    for i in range(len(y)):
+    for i in range(n):
         y[i] = y[i] - np.mean(y[i])
 
     temp = []
-    for i in range(len(y)):
+    for i in range(n):
         temp.append(4 * (np.mean(y[i] ** 2) - 1) * y[i])
 
-    pen = np.zeros((len(y), len(y)))
-    for i in range(len(y)):
-        for j in range(len(y)):
+    pen = np.zeros((n, n))
+    for i in range(n):
+        for j in range(n):
             pen[i][j] = np.mean(temp[i] * x[j])
 
-    return (M_Psi @ B.T - np.eye(len(y)) + lam1 * pen @ B.T)
+    return (M_Psi @ B.T - np.eye(n) + lam1 * pen @ B.T)
+
+def compute_gradient(B, y, x, lam1):
+    n = len(y)
+
+    m_y = np.zeros((n, 6))
+    for i in range(n):
+        m_y[i][0] = np.mean(y[i])
+        m_y[i][1] = np.mean(y[i] ** 2)
+        m_y[i][2] = np.mean(y[i] ** 3)
+        m_y[i][3] = np.mean(y[i] ** 4)
+        m_y[i][4] = np.mean(y[i] ** 5)
+        m_y[i][5] = np.mean(y[i] ** 6)
+
+    K = np.zeros((n, 4))  # base des polynomes de degré 3 pour approcher fonction score
+
+    for i in range(n):
+        K[i][0] = 1
+        K[i][1] = m_y[i][0]
+        K[i][2] = m_y[i][1]
+        K[i][3] = m_y[i][2]
+
+    M = np.zeros((n, 4, 4))
+
+    for i in range(n):
+        M[i][0][0] = 1
+        M[i][0][1] = m_y[i][0]
+        M[i][0][2] = m_y[i][1]
+        M[i][0][3] = m_y[i][2]
+        M[i][1][0] = m_y[i][0]
+        M[i][1][1] = m_y[i][1]
+        M[i][1][2] = m_y[i][2]
+        M[i][1][3] = m_y[i][3]
+        M[i][2][0] = m_y[i][1]
+        M[i][2][1] = m_y[i][2]
+        M[i][2][2] = m_y[i][3]
+        M[i][2][3] = m_y[i][4]
+        M[i][3][0] = m_y[i][2]
+        M[i][3][1] = m_y[i][3]
+        M[i][3][2] = m_y[i][4]
+        M[i][3][3] = m_y[i][5]
+
+    P = []
+    for i in range(n):
+        P.append([[0, 1, 2 * m_y[i][0], 3 * (m_y[i][1])]])
+    P = np.array(P)
+
+    w = []
+    for i in range(n):
+        w.append(np.linalg.inv(np.array(M[i])) @ np.array(P[i]).T)
+
+    w = np.array(w)
+
+    Psi_y = []
+    for i in range(n):
+        Psi_y.append(w[i][0] + w[i][1] * y[i] + w[i][2] * y[i] ** 2 + w[i][3] * y[i] ** 3)
+
+    M_Psi = np.zeros((n, n))
+    for i in range(n):
+        for j in range(n):
+            M_Psi[i][j] = np.mean(Psi_y[i] * x[j])
+
+    for i in range(n):
+        y[i] = y[i] - np.mean(y[i])
+
+    temp = []
+    for i in range(n):
+        temp.append(4 * (np.mean(y[i] ** 2) - 1) * y[i])
+
+    pen = np.zeros((n, n))
+    for i in range(n):
+        for j in range(n):
+            pen[i][j] = np.mean(temp[i] * x[j])
+
+    return (M_Psi @ B.T - np.eye(n) + lam1 * pen @ B.T)
 
 def separate_mixed_unicolor(input_list_v, nb_iter, lambd, mu):
     """
@@ -83,11 +159,14 @@ def separate_mixed_unicolor(input_list_v, nb_iter, lambd, mu):
 
      * Returns :
          - output_list_v -> liste des approximations (vecteurs)
-         - dtype -> type de données des observées
+         - dtype_list -> type de données des observées
     """
     n = len(input_list_v)
     B = np.eye(n)
-    dtype = input_list_v[0].dtype
+    dtype_list = []
+
+    for i in range(n):
+        dtype_list.append(input_list_v[i].dtype)
 
     ## Normalisation
     for i in range(n):
@@ -108,7 +187,7 @@ def separate_mixed_unicolor(input_list_v, nb_iter, lambd, mu):
         for i in range(n):
             output_list_v[i] = output_list_v[i] - np.mean(output_list_v[i])
 
-    return output_list_v, dtype
+    return output_list_v, dtype_list
 
 
 def separate_mixed_color(input_list_v, nb_iter, lambd, mu):
@@ -119,7 +198,7 @@ def separate_mixed_color(input_list_v, nb_iter, lambd, mu):
 
      * Returns :
          - output_list_v -> tableau des approximations en couleur (vecteurs x 3)
-         - dtype
+         - dtype_list
     """
     n = len(input_list_v)
     col_number = input_list_v[0].shape[1]
@@ -133,13 +212,13 @@ def separate_mixed_color(input_list_v, nb_iter, lambd, mu):
             input_list_v_col[i].append(input_list_v[j][:, i])
 
     for i in range(col_number):
-        output_v_col, dtype = separate_mixed_unicolor(input_list_v_col[i], nb_iter, lambd, mu)
+        output_v_col, dtype_list = separate_mixed_unicolor(input_list_v_col[i], nb_iter, lambd, mu)
         output_list_v_col.append(output_v_col)
 
     for i in range(n):
         output_v = np.zeros(
             (output_list_v_col[0][0].shape[0], col_number),
-            dtype=output_list_v_col[0][0].dtype
+            dtype=np.float_
         )
 
         for j in range(col_number):
@@ -147,7 +226,7 @@ def separate_mixed_color(input_list_v, nb_iter, lambd, mu):
 
         output_list_v.append(output_v)
 
-    return output_list_v, dtype
+    return output_list_v, dtype_list
 
 
 def separate_mixed(input_list_v, nb_iter, lambd, mu):
@@ -158,15 +237,18 @@ def separate_mixed(input_list_v, nb_iter, lambd, mu):
 
      * Returns :
          - output_list_v -> liste des approximations (vecteurs [x 3])
-         - dtype -> type de données des observées
+         - dtype_list -> type de données des observées
     """
     if (len(input_list_v[0].shape) > 1):  # Images en couleur
-        output_list_v, dtype = separate_mixed_color(input_list_v, nb_iter, lambd, mu)
+        output_list_v, dtype_list = separate_mixed_color(input_list_v, nb_iter, lambd, mu)
 
     else:
-        output_list_v, dtype = separate_mixed_unicolor(input_list_v, nb_iter, lambd, mu)
+        output_list_v, dtype_list = separate_mixed_unicolor(input_list_v, nb_iter, lambd, mu)
 
-    return output_list_v, dtype
+    return output_list_v, dtype_list
+
+
+# Cette fonction n'a pas abouti et n'est probablement plus compatible avec le reste du programme
 
 
 def separate_sub_mixed(mixed_sub_img_vect): # Work in progress

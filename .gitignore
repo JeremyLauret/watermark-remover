@@ -4,3 +4,4 @@ venv/
 test.py
 lib/__pycache__
 img_sizes.txt
+nSourcesLuca.py

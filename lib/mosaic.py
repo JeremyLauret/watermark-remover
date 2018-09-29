@@ -1,3 +1,5 @@
+# Ces fonctions n'ont pas abouti et ne sont probablement plus compatibles avec le reste du programme
+
 def mosaique(liste_images, cote):
     (hauteur, largeur) = liste_images[0].shape[0:2]
     for I in range(hauteur // cote):

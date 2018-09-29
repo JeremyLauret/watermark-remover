@@ -102,6 +102,9 @@ def vect_to_matrix_list(vect_list, nb_row_list, nb_col_list):
     return matrix_list
 
 
+# Ces fonctions n'ont pas abouti et ne sont probablement plus compatibles avec le reste du programme
+
+
 def sub_matrix_to_sub_vector(mixed_sub_img_matrix): # Work in progress
     """
      * Args :
